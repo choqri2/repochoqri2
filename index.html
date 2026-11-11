@@ -5,184 +5,159 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Neon Drift</title>
   <style>
-    :root {
-      --bg: #0a0a12;
-      --fg: #e8e8f0;
-      --accent: #00ffe0;
-      --accent2: #ff2d95;
-      --accent3: #ffcc00;
-      --dim: #2a2a3a;
-      --card: #12121e;
+    :root{
+      --bg:#070b14;
+      --bg2:#101827;
+      --fg:#eaf6ff;
+      --accent:#00ffe0;
+      --accent2:#ff2d95;
+      --accent3:#ffd166;
+      --panel:#121a2a;
+      --line:#2a334a;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: 'JetBrains Mono', 'Fira Code', monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      touch-action: none;
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{
+      width:100%;height:100%;
+      font-family:'JetBrains Mono','Fira Code',monospace;
+      background:radial-gradient(circle at top,#0e1320 0%,var(--bg) 55%);
+      color:var(--fg);
+      overflow:hidden;
+    }
+    body{
+      display:flex;align-items:center;justify-content:center;
+      user-select:none;-webkit-user-select:none;
+      touch-action:none;
     }
 
-    #gameCanvas {
-      display: block;
-      box-shadow: 0 0 60px -10px #00ffe044, 0 0 100px -20px #ff2d9544;
+    canvas{
+      display:block;
+      width:min(96vw,960px);
+      height:auto;
+      background:linear-gradient(180deg,#07101a,#0c1422 35%,#0a0f18);
+      border:1px solid var(--line);
+      box-shadow:
+        0 0 30px rgba(0,255,224,.2),
+        0 0 80px rgba(255,45,149,.14),
+        inset 0 0 30px rgba(0,255,224,.04);
     }
 
-    .ui { position: absolute; pointer-events: none; z-index: 10; }
-
-    #hud {
-      top: 16px;
-      left: 16px;
-      right: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
+    .hud{
+      position:absolute;
+      top:16px;left:16px;right:16px;
+      display:flex;justify-content:space-between;align-items:flex-start;
+      pointer-events:none;
+      z-index:10;
     }
 
-    .stat {
-      background: var(--card);
-      border: 1px solid var(--dim);
-      padding: 8px 14px;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 90px;
-      box-shadow: 0 4px 20px -4px #00000088;
+    .stat{
+      background:rgba(18,26,42,.7);
+      border:1px solid rgba(255,255,255,.08);
+      backdrop-filter: blur(6px);
+      border-radius:12px;
+      padding:10px 14px;
+      min-width:96px;
+      text-align:center;
+      box-shadow:0 8px 20px rgba(0,0,0,.25);
+    }
+    .label{
+      color:var(--accent);
+      opacity:.8;
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:1.6px;
+    }
+    .value{
+      margin-top:4px;
+      font-size:24px;
+      font-weight:700;
+      font-variant-numeric:tabular-nums;
+    }
+    .value.high{color:var(--accent3)}
+
+    .panel{
+      position:absolute;
+      left:50%;top:50%;
+      transform:translate(-50%,-50%);
+      width:min(88vw,360px);
+      background:rgba(10,15,26,.85);
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:16px;
+      padding:28px 22px;
+      text-align:center;
+      box-shadow:0 20px 50px rgba(0,0,0,.45);
+      z-index:20;
+      transition:opacity .22s ease, visibility .22s ease;
+    }
+    .panel.hidden{
+      opacity:0;visibility:hidden;pointer-events:none;
     }
 
-    .stat .label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--accent);
-      opacity: 0.7;
+    h1{
+      font-size:clamp(34px,7vw,54px);
+      font-weight:800;
+      letter-spacing:3px;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      margin-bottom:8px;
     }
 
-    .stat .value {
-      font-size: 22px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
+    .sub{
+      color:var(--accent2);
+      letter-spacing:1.6px;
+      font-size:12px;
+      opacity:.9;
+      margin-bottom:22px;
+      text-transform:uppercase;
     }
 
-    .stat .value.high { color: var(--accent3); }
-
-    #menu {
-      pointer-events: auto;
-      text-align: center;
-      max-width: 320px;
+    button{
+      appearance:none;border:none;
+      width:100%;
+      background:linear-gradient(135deg,#101827,#1b2439);
+      color:var(--fg);
+      font:inherit;
+      font-size:16px;
+      font-weight:700;
+      padding:14px 18px;
+      border-radius:12px;
+      cursor:pointer;
+      border:1px solid rgba(0,255,224,.2);
+      transition:transform .12s ease, box-shadow .2s ease, border-color .2s ease;
+      box-shadow:0 10px 25px rgba(0,255,224,.08);
+    }
+    button:hover{
+      transform:translateY(-2px);
+      border-color:rgba(0,255,224,.45);
+      box-shadow:0 12px 30px rgba(0,255,224,.18);
+    }
+    button.secondary{
+      margin-top:10px;
+      background:transparent;
+      border-color:rgba(255,255,255,.08);
+      color:var(--accent)
     }
 
-    #menu h1 {
-      font-size: clamp(28px, 8vw, 48px);
-      font-weight: 800;
-      letter-spacing: 2px;
-      margin-bottom: 4px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+    .gameover-title{
+      font-size:12px;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      color:var(--accent2);
+      opacity:.85;
     }
-
-    #menu .tagline {
-      color: var(--accent2);
-      font-size: 13px;
-      margin-bottom: 28px;
-      opacity: 0.85;
-    }
-
-    .btn {
-      appearance: none;
-      border: none;
-      background: linear-gradient(135deg, var(--card), var(--dim));
-      color: var(--fg);
-      padding: 14px 36px;
-      font: inherit;
-      font-size: 16px;
-      font-weight: 600;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: transform .1s, box-shadow .2s, border-color .2s;
-      border: 1px solid transparent;
-      width: 100%;
-      max-width: 280px;
-      margin: 10px auto;
-      display: block;
-    }
-
-    .btn:hover, .btn:focus {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px -6px var(--accent)88;
-      border-color: var(--accent)66;
-      outline: none;
-    }
-
-    .btn:active { transform: translateY(0); }
-
-    .btn.secondary {
-      background: transparent;
-      border-color: var(--dim);
-      color: var(--accent);
-    }
-
-    .btn.secondary:hover {
-      border-color: var(--accent);
-      box-shadow: 0 8px 30px -6px var(--accent)44;
-    }
-
-    #overlay {
-      position: fixed;
-      inset: 0;
-      background: #0a0a12ee;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .3s;
-    }
-
-    #overlay.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    #overlayContent {
-      text-align: center;
-      transform: scale(0.95);
-      transition: transform .3s;
-    }
-
-    #overlay.show #overlayContent { transform: scale(1); }
-
-    #finalScore {
-      font-size: 48px;
-      font-weight: 800;
-      color: var(--accent);
-      margin-bottom: 8px;
-    }
-
-    .small {
-      opacity: 0.8;
-      font-size: 12px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--accent2);
+    .final{
+      margin:8px 0 18px;
+      font-size:52px;
+      font-weight:800;
+      color:var(--accent);
+      text-shadow:0 0 28px rgba(0,255,224,.25);
     }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="960" height="540"></canvas>
-
-  <div class="ui" id="hud">
+  <div class="hud">
     <div class="stat">
       <div class="label">Score</div>
       <div class="value" id="scoreValue">0</div>
@@ -197,162 +172,286 @@
     </div>
   </div>
 
-  <div class="ui" id="menu">
+  <div class="panel" id="startPanel">
     <h1>NEON DRIFT</h1>
-    <div class="tagline">DODGE THE GRID / STAY IN THE ZONE</div>
-    <button class="btn" id="startBtn">Start Run</button>
-    <button class="btn secondary" id="toggleBtn">How to Play</button>
+    <div class="sub">Dodge the grid / Stay alive</div>
+    <button id="startBtn">Start Run</button>
+    <button class="secondary" id="howBtn">How to Play</button>
   </div>
 
-  <div id="overlay" aria-live="polite">
-    <div id="overlayContent">
-      <div class="small">Run Complete</div>
-      <div id="finalScore">0</div>
-      <button class="btn" id="restartBtn">Play Again</button>
-    </div>
+  <div class="panel hidden" id="gameOverPanel">
+    <div class="gameover-title">Run Complete</div>
+    <div class="final" id="finalScore">0</div>
+    <button id="restartBtn">Play Again</button>
   </div>
+
+  <canvas id="game" width="960" height="540"></canvas>
 
   <script>
-    const canvas = document.getElementById('gameCanvas');
+    const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
+
     const scoreValue = document.getElementById('scoreValue');
     const bestValue = document.getElementById('bestValue');
     const speedValue = document.getElementById('speedValue');
     const finalScore = document.getElementById('finalScore');
-    const overlay = document.getElementById('overlay');
+    const startPanel = document.getElementById('startPanel');
+    const gameOverPanel = document.getElementById('gameOverPanel');
     const startBtn = document.getElementById('startBtn');
     const restartBtn = document.getElementById('restartBtn');
-    const toggleBtn = document.getElementById('toggleBtn');
-    const menu = document.getElementById('menu');
+    const howBtn = document.getElementById('howBtn');
 
-    let started = false;
-    let gameOver = false;
-    let score = 0;
-    let best = Number(localStorage.getItem('neonDriftBest') || 0);
-    let speed = 1;
+    const state = {
+      running: false,
+      gameOver: false,
+      score: 0,
+      best: Number(localStorage.getItem('neonDriftBest') || 0),
+      speed: 1,
+      time: 0
+    };
 
-    bestValue.textContent = best;
+    const player = {
+      x: canvas.width/2,
+      y: canvas.height/2,
+      r: 18,
+      vx: 0,
+      vy: 0,
+      maxSpeed: 4.6
+    };
+
+    const rings = [];
+    const stars = [];
+    const keys = {};
+
+    function initStars() {
+      stars.length = 0;
+      for (let i = 0; i < 100; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 2.2 + 0.8,
+          speed: Math.random() * 1.2 + 0.4
+        });
+      }
+    }
 
     function resetGame() {
-      score = 0;
-      speed = 1;
-      gameOver = false;
-      finalScore.textContent = '0';
+      state.running = true;
+      state.gameOver = false;
+      state.score = 0;
+      state.speed = 1;
+      state.time = 0;
+
+      player.x = canvas.width / 2;
+      player.y = canvas.height / 2;
+      player.vx = 0;
+      player.vy = 0;
+
+      rings.length = 0;
+      for (let i = 0; i < 8; i++) {
+        rings.push({
+          x: Math.random() * (canvas.width - 120) + 60,
+          y: Math.random() * (canvas.height - 120) + 60,
+          r: 26 + Math.random() * 42,
+          vx: (Math.random() - 0.5) * 2.2,
+          vy: (Math.random() - 0.5) * 2.2,
+          hue: i % 2 === 0 ? 'cyan' : 'pink'
+        });
+      }
+
       scoreValue.textContent = '0';
       speedValue.textContent = '1.0x';
-      overlay.classList.remove('show');
-      menu.style.display = 'none';
-      started = true;
+      finalScore.textContent = '0';
+      startPanel.classList.add('hidden');
+      gameOverPanel.classList.add('hidden');
     }
 
     function endGame() {
-      gameOver = true;
-      started = false;
-      finalScore.textContent = score;
-      overlay.classList.add('show');
-      if (score > best) {
-        best = score;
-        localStorage.setItem('neonDriftBest', String(best));
-        bestValue.textContent = best;
+      state.running = false;
+      state.gameOver = true;
+      finalScore.textContent = state.score;
+      gameOverPanel.classList.remove('hidden');
+      if (state.score > state.best) {
+        state.best = state.score;
+        localStorage.setItem('neonDriftBest', String(state.best));
+      }
+      bestValue.textContent = state.best;
+    }
+
+    function updatePlayer() {
+      const dx = (keys['ArrowRight'] || keys['d'] ? 1 : 0) - (keys['ArrowLeft'] || keys['a'] ? 1 : 0);
+      const dy = (keys['ArrowDown'] || keys['s'] ? 1 : 0) - (keys['ArrowUp'] || keys['w'] ? 1 : 0);
+
+      player.vx += dx * 0.34;
+      player.vy += dy * 0.34;
+
+      player.vx *= 0.88;
+      player.vy *= 0.88;
+
+      const mag = Math.hypot(player.vx, player.vy);
+      if (mag > player.maxSpeed) {
+        player.vx = (player.vx / mag) * player.maxSpeed;
+        player.vy = (player.vy / mag) * player.maxSpeed;
+      }
+
+      player.x += player.vx;
+      player.y += player.vy;
+
+      if (player.x < player.r) player.x = player.r;
+      if (player.x > canvas.width - player.r) player.x = canvas.width - player.r;
+      if (player.y < player.r) player.y = player.r;
+      if (player.y > canvas.height - player.r) player.y = canvas.height - player.r;
+    }
+
+    function updateRings() {
+      for (const ring of rings) {
+        ring.x += ring.vx * state.speed;
+        ring.y += ring.vy * state.speed;
+
+        if (ring.x < 30 || ring.x > canvas.width - 30) ring.vx *= -1;
+        if (ring.y < 30 || ring.y > canvas.height - 30) ring.vy *= -1;
+
+        const dist = Math.hypot(player.x - ring.x, player.y - ring.y);
+        if (dist < player.r + ring.r * 0.6) {
+          endGame();
+        }
       }
     }
 
-    function loop() {
-      if (!started) {
-        drawMenuScene();
-      } else {
-        update();
-        draw();
+    function updateScore() {
+      state.score += 1;
+      state.speed = 1 + state.score / 500;
+      scoreValue.textContent = state.score;
+      speedValue.textContent = `${state.speed.toFixed(1)}x`;
+      if (state.score > state.best) {
+        bestValue.textContent = state.score;
       }
-      requestAnimationFrame(loop);
     }
 
-    function update() {
-      score += 1;
-      speed = 1 + score / 400;
-      scoreValue.textContent = score;
-      speedValue.textContent = `${speed.toFixed(1)}x`;
-      if (score > best) bestValue.textContent = score;
-      if (score > 900) endGame();
-    }
+    function drawBackground() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    function drawMenuScene() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      g.addColorStop(0, '#0a0a12');
-      g.addColorStop(1, '#111827');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const grad = ctx.createLinearGradient(0,0,0,canvas.height);
+      grad.addColorStop(0,'#070b14');
+      grad.addColorStop(0.5,'#0d1522');
+      grad.addColorStop(1,'#070c16');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,canvas.width,canvas.height);
 
-      ctx.strokeStyle = 'rgba(0,255,224,0.18)';
-      ctx.lineWidth = 1;
-      for (let i = 0; i < canvas.width; i += 38) {
+      for (const star of stars) {
+        star.y += star.speed;
+        if (star.y > canvas.height) {
+          star.y = -10;
+          star.x = Math.random()*canvas.width;
+        }
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
         ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, canvas.height);
-        ctx.stroke();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI*2);
+        ctx.fill();
       }
-      for (let i = 0; i < canvas.height; i += 38) {
-        ctx.beginPath();
-        ctx.moveTo(0, i);
-        ctx.lineTo(canvas.width, i);
-        ctx.stroke();
-      }
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      g.addColorStop(0, '#0a0a12');
-      g.addColorStop(1, '#090b16');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.strokeStyle = 'rgba(255,255,255,0.06)';
       ctx.lineWidth = 1;
-      for (let i = 0; i < canvas.width; i += 42) {
+      for (let x = 0; x < canvas.width; x += 42) {
         ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, canvas.height);
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
         ctx.stroke();
       }
-
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-      const pulse = Math.sin(score * 0.12) * 16;
-
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, 120 + pulse, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(0,255,224,0.9)';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(centerX - 160, centerY);
-      ctx.lineTo(centerX + 160, centerY);
-      ctx.moveTo(centerX, centerY - 110);
-      ctx.lineTo(centerX, centerY + 110);
-      ctx.strokeStyle = 'rgba(255,45,149,0.7)';
-      ctx.stroke();
-
-      ctx.fillStyle = '#00ffe0';
-      ctx.fillRect(centerX - 18, centerY - 18, 36, 36);
+      for (let y = 0; y < canvas.height; y += 42) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
     }
 
-    startBtn.addEventListener('click', () => resetGame());
-    restartBtn.addEventListener('click', () => resetGame());
-    toggleBtn.addEventListener('click', () => {
-      alert('Move with arrow keys or A/D. Stay inside the drift ring and survive as long as possible.');
+    function drawRings() {
+      for (const ring of rings) {
+        ctx.beginPath();
+        ctx.arc(ring.x, ring.y, ring.r, 0, Math.PI*2);
+
+        ctx.strokeStyle = ring.hue === 'cyan'
+          ? 'rgba(0,255,224,0.9)'
+          : 'rgba(255,45,149,0.8)';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = ring.hue === 'cyan' ? '#00ffe0' : '#ff2d95';
+        ctx.shadowBlur = 20;
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    function drawPlayer() {
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.r, 0, Math.PI*2);
+      ctx.fillStyle = '#00ffe0';
+      ctx.shadowColor = '#00ffe0';
+      ctx.shadowBlur = 18;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.beginPath();
+      ctx.moveTo(player.x, player.y - 10);
+      ctx.lineTo(player.x + 8, player.y + 12);
+      ctx.lineTo(player.x - 8, player.y + 12);
+      ctx.closePath();
+      ctx.fillStyle = '#eaf6ff';
+      ctx.fill();
+    }
+
+    function drawCenterAxis() {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.beginPath();
+      ctx.moveTo(cx, 0);
+      ctx.lineTo(cx, canvas.height);
+      ctx.moveTo(0, cy);
+      ctx.lineTo(canvas.width, cy);
+      ctx.stroke();
+    }
+
+    function render() {
+      drawBackground();
+      drawCenterAxis();
+      drawRings();
+      drawPlayer();
+    }
+
+    function tick() {
+      if (state.running) {
+        state.time++;
+        updatePlayer();
+        updateRings();
+        if (state.time % 5 === 0) updateScore();
+      }
+      render();
+      requestAnimationFrame(tick);
+    }
+
+    startBtn.addEventListener('click', resetGame);
+    restartBtn.addEventListener('click', resetGame);
+    howBtn.addEventListener('click', () => {
+      alert('Use WASD or arrow keys to steer. Avoid the neon rings. Survive as long as possible.');
     });
 
-    document.addEventListener('keydown', (event) => {
-      if (!started && (event.key === 'Enter' || event.key === ' ')) {
+    document.addEventListener('keydown', (e) => {
+      keys[e.key] = true;
+      keys[e.key.toLowerCase()] = true;
+      if ((e.key === 'Enter' || e.key === ' ') && !state.running) {
         resetGame();
       }
     });
+    document.addEventListener('keyup', (e) => {
+      keys[e.key] = false;
+      keys[e.key.toLowerCase()] = false;
+    });
 
-    drawMenuScene();
-    requestAnimationFrame(loop);
+    bestValue.textContent = state.best;
+    initStars();
+    render();
+    tick();
   </script>
 </body>
 </html>
