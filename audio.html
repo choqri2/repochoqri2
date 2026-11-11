@@ -1,32 +1,289 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Neon Drift: Breach — Música y efectos</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Neon Drift: Breach — Música synthwave</title>
 <style>
-*{box-sizing:border-box}html,body{height:100%;margin:0;background:#070d12;color:#ebf9ff;font:14px system-ui,Arial,sans-serif}body{display:flex;flex-direction:column}.soundbar{z-index:5;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:9px 14px;background:#0e171dee;border-bottom:1px solid #9af6d544}.soundbar strong{color:#c7ff76;letter-spacing:.08em}.soundbar button{border:1px solid #c7ff7655;border-radius:7px;padding:7px 12px;background:#162631;color:#ebf9ff;font-weight:700;cursor:pointer}.soundbar button:hover{border-color:#c7ff76}.soundbar label{display:flex;align-items:center;gap:7px;color:#a7b5bd;font-size:12px}.soundbar input{width:90px;accent-color:#c7ff76}.status{font-size:11px;color:#9af6d5}iframe{display:block;width:100%;flex:1;border:0;background:#080e13}
+*{box-sizing:border-box}html,body{height:100%;margin:0;background:#070d12;color:#ebf9ff;font:14px system-ui,Arial,sans-serif}body{display:flex;flex-direction:column}.soundbar{z-index:5;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:#0e171dee;border-bottom:1px solid #9af6d544}.soundbar strong{color:#c7ff76;letter-spacing:.08em}.soundbar button{border:1px solid #c7ff7655;border-radius:7px;padding:7px 12px;background:#162631;color:#ebf9ff;font-weight:700;cursor:pointer}.soundbar button:hover{border-color:#c7ff76}.soundbar label{display:flex;align-items:center;gap:7px;color:#a7b5bd;font-size:12px}.soundbar input{width:90px;accent-color:#c7ff76}.status{font-size:11px;color:#9af6d5}iframe{display:block;width:100%;flex:1;border:0;background:#080e13}
 </style>
 </head>
 <body>
-<div class="soundbar"><strong>NEON DRIFT · AUDIO</strong><button id="audioToggle">Activar música y efectos</button><label>Volumen <input id="volume" type="range" min="0" max="100" value="35"></label><span class="status" id="status">El audio empieza tras pulsar el botón (requisito del navegador).</span></div>
+<div class="soundbar"><strong>NEON DRIFT · SYNTHWAVE</strong><button id="audioToggle">Activar música y efectos</button><label>Volumen <input id="volume" type="range" min="0" max="100" value="35"></label><span class="status" id="status">Pulsa el botón para activar el audio.</span></div>
 <iframe id="game" title="Neon Drift: Breach" src="./index.html"></iframe>
 <script>
-(()=>{
- const frame=document.getElementById('game'),button=document.getElementById('audioToggle'),volume=document.getElementById('volume'),status=document.getElementById('status');
- let audio=null,master=null,musicGain=null,sfxGain=null,enabled=false,musicTimer=0,step=0,lastShot=0,lastHit=0,lastKill=0,seenLevel=0,observer=null;
- const scale=[0,3,5,7,10,12,15,19],root=55;
- function ensureAudio(){if(audio)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC){status.textContent='Este navegador no permite audio WebAudio.';return}audio=new AC();master=audio.createGain();musicGain=audio.createGain();sfxGain=audio.createGain();musicGain.gain.value=.45;sfxGain.gain.value=.8;musicGain.connect(master);sfxGain.connect(master);master.connect(audio.destination);applyVolume()}
- function applyVolume(){if(master)master.gain.setTargetAtTime(Number(volume.value)/100,audio.currentTime,.04)}
- function tone(freq,duration=.16,wave='sine',gain=.08,when=0,dest=sfxGain){if(!audio||!enabled)return;const t=audio.currentTime+when,osc=audio.createOscillator(),amp=audio.createGain();osc.type=wave;osc.frequency.setValueAtTime(Math.max(30,freq),t);amp.gain.setValueAtTime(.0001,t);amp.gain.exponentialRampToValueAtTime(Math.max(.001,gain),t+.012);amp.gain.exponentialRampToValueAtTime(.0001,t+duration);osc.connect(amp);amp.connect(dest);osc.start(t);osc.stop(t+duration+.03)}
- function noise(duration=.12,gain=.08,filter=1200){if(!audio||!enabled)return;const size=Math.floor(audio.sampleRate*duration),buffer=audio.createBuffer(1,size,audio.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<size;i++)data[i]=(Math.random()*2-1)*(1-i/size);const src=audio.createBufferSource(),f=audio.createBiquadFilter(),amp=audio.createGain();src.buffer=buffer;f.type='lowpass';f.frequency.value=filter;amp.gain.setValueAtTime(gain,audio.currentTime);amp.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+duration);src.connect(f);f.connect(amp);amp.connect(sfxGain);src.start();src.stop(audio.currentTime+duration)}
- function shootSound(){const now=performance.now();if(now-lastShot<85)return;lastShot=now;tone(520,.07,'square',.025);tone(180,.1,'sawtooth',.018,.015)}
- function hitSound(){const now=performance.now();if(now-lastHit<150)return;lastHit=now;tone(180,.12,'triangle',.07);tone(85,.16,'sine',.055,.025)}
- function killSound(){const now=performance.now();if(now-lastKill<100)return;lastKill=now;tone(660,.1,'sine',.07);tone(990,.16,'triangle',.045,.07)}
- function shieldSound(){tone(250,.24,'sine',.08);tone(720,.32,'triangle',.045,.03);noise(.12,.025,2400)}
- function musicStep(){if(!enabled||!audio)return;const bar=Math.floor(step/8),idx=step%8,base=root*(bar%4===2?1.122:1);if(idx===0||idx===4){tone(base/2,.34,'triangle',.045,0,musicGain);tone(base,.28,'sine',.022,.02,musicGain)}if(idx===2||idx===6)tone(base*2,.09,'sine',.012,0,musicGain);if(idx===1||idx===5)tone(base*scale[(bar+idx)%scale.length],.11,'triangle',.014,0,musicGain);if(idx===4)noise(.09,.018,700);step=(step+1)%32}
- function startMusic(){clearInterval(musicTimer);step=0;musicStep();musicTimer=setInterval(musicStep,210)}
- function attachGameListeners(){try{const doc=frame.contentDocument;if(!doc||!doc.body){status.textContent='El juego cargó; inicia audio con el botón.';return}if(observer)observer.disconnect();const score=doc.getElementById('score'),hp=doc.getElementById('hp'),level=doc.getElementById('level'),canvas=doc.getElementById('game');let prevScore=Number(score?.textContent||0),prevHp=hp?.textContent,prevLevel=level?.textContent;const onKey=e=>{if([' ','f','F'].includes(e.key))shootSound();if(e.key==='Shift')shieldSound()};doc.addEventListener('keydown',onKey,true);canvas?.addEventListener('pointerdown',shootSound,true);if(observer)observer.disconnect();observer=new MutationObserver(()=>{const nextScore=Number(score?.textContent||0),nextHp=hp?.textContent,nextLevel=level?.textContent;if(nextScore>prevScore)killSound();if(prevHp!==undefined&&nextHp!==prevHp)hitSound();if(nextLevel!==undefined&&nextLevel!==prevLevel){tone(440,.18,'triangle',.06);tone(660,.28,'sine',.05,.14);prevLevel=nextLevel}prevScore=nextScore;prevHp=nextHp});for(const el of [score,hp,level])if(el)observer.observe(el,{childList:true,characterData:true,subtree:true});status.textContent='Audio listo: música y efectos activos. El juego abre en el panel inferior.'}catch{status.textContent='No pude conectar los efectos al juego; recarga la página y prueba de nuevo.'}}
- button.addEventListener('click',async()=>{ensureAudio();if(!audio)return;await audio.resume();enabled=!enabled;button.textContent=enabled?'Silenciar música y efectos':'Activar música y efectos';status.textContent=enabled?'Música y efectos activados.':'Audio silenciado.';if(enabled){startMusic();attachGameListeners()}else clearInterval(musicTimer)});
- volume.addEventListener('input',applyVolume);frame.addEventListener('load',()=>{if(enabled)attachGameListeners()});
+(() => {
+  const frame = document.getElementById('game');
+  const button = document.getElementById('audioToggle');
+  const volume = document.getElementById('volume');
+  const status = document.getElementById('status');
+
+  let audio = null;
+  let master = null;
+  let musicGain = null;
+  let sfxGain = null;
+  let enabled = false;
+  let musicTimer = 0;
+  let musicStepIndex = 0;
+  let levelValue = 1;
+  let lastShot = 0;
+  let lastHit = 0;
+  let lastKill = 0;
+  let lastLevelPulse = 0;
+  let observer = null;
+
+  const chordMap = [
+    [220, 277.18, 329.63],
+    [246.94, 293.66, 369.99],
+    [196, 246.94, 293.66],
+    [174.61, 220, 261.63],
+    [146.83, 184.99, 220],
+    [110, 146.83, 174.61]
+  ];
+
+  function ensureAudio() {
+    if (audio) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) {
+      status.textContent = 'Este navegador no permite WebAudio.';
+      return;
+    }
+    audio = new AC();
+    master = audio.createGain();
+    musicGain = audio.createGain();
+    sfxGain = audio.createGain();
+    master.gain.value = Number(volume.value) / 100;
+    musicGain.gain.value = 0.42;
+    sfxGain.gain.value = 0.78;
+    musicGain.connect(master);
+    sfxGain.connect(master);
+    master.connect(audio.destination);
+  }
+
+  function tone(freq, duration = 0.15, wave = 'sine', gain = 0.06, when = 0, dest = sfxGain) {
+    if (!audio || !enabled) return;
+    const t = audio.currentTime + when;
+    const osc = audio.createOscillator();
+    const amp = audio.createGain();
+    osc.type = wave;
+    osc.frequency.setValueAtTime(Math.max(30, freq), t);
+    amp.gain.setValueAtTime(0.0001, t);
+    amp.gain.exponentialRampToValueAtTime(Math.max(0.001, gain), t + 0.01);
+    amp.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    osc.connect(amp);
+    amp.connect(dest);
+    osc.start(t);
+    osc.stop(t + duration + 0.04);
+  }
+
+  function noise(duration = 0.12, gain = 0.08, filter = 1200) {
+    if (!audio || !enabled) return;
+    const sampleRate = audio.sampleRate;
+    const size = Math.floor(sampleRate * duration);
+    const buffer = audio.createBuffer(1, size, sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < size; i++) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / size);
+    }
+    const src = audio.createBufferSource();
+    const filt = audio.createBiquadFilter();
+    const amp = audio.createGain();
+    src.buffer = buffer;
+    filt.type = 'lowpass';
+    filt.frequency.value = filter;
+    amp.gain.value = gain;
+    amp.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + duration);
+    src.connect(filt);
+    filt.connect(amp);
+    amp.connect(sfxGain);
+    src.start();
+    src.stop(audio.currentTime + duration + 0.02);
+  }
+
+  function signalShot() {
+    const now = performance.now();
+    if (now - lastShot < 80) return;
+    lastShot = now;
+    tone(520, 0.06, 'square', 0.025);
+    tone(180, 0.1, 'sawtooth', 0.018, 0.02);
+  }
+
+  function signalHit() {
+    const now = performance.now();
+    if (now - lastHit < 140) return;
+    lastHit = now;
+    tone(190, 0.12, 'triangle', 0.07);
+    tone(90, 0.18, 'sine', 0.055, 0.03);
+  }
+
+  function signalKill() {
+    const now = performance.now();
+    if (now - lastKill < 120) return;
+    lastKill = now;
+    tone(680, 0.09, 'sine', 0.08);
+    tone(980, 0.18, 'triangle', 0.05, 0.06);
+    noise(0.1, 0.04, 1600);
+  }
+
+  function signalShield() {
+    tone(240, 0.24, 'sine', 0.08);
+    tone(720, 0.34, 'triangle', 0.055, 0.04);
+    noise(0.12, 0.03, 2600);
+  }
+
+  function signalLevelUp() {
+    const now = performance.now();
+    if (now - lastLevelPulse < 220) return;
+    lastLevelPulse = now;
+    tone(330, 0.14, 'triangle', 0.07);
+    tone(440, 0.18, 'sine', 0.05, 0.08);
+    tone(660, 0.24, 'triangle', 0.04, 0.18);
+  }
+
+  function playBass(freq, duration = 0.28, gain = 0.04) {
+    tone(freq, duration, 'triangle', gain, 0, musicGain);
+  }
+
+  function playLead(freq, duration = 0.2, gain = 0.025) {
+    tone(freq, duration, 'sawtooth', gain, 0.02, musicGain);
+  }
+
+  function playKick() {
+    tone(50, 0.12, 'square', 0.09, 0, musicGain);
+  }
+
+  function setMusicIntensity() {
+    const intensity = Math.min(1.5, 0.7 + (levelValue - 1) * 0.12);
+    musicGain.gain.setTargetAtTime(0.28 + intensity * 0.24, audio.currentTime, 0.2);
+  }
+
+  function musicStep() {
+    if (!enabled || !audio) return;
+
+    const base = 55 * ((musicStepIndex % 8) % 5 === 0 ? 1.5 : 1);
+    const phase = musicStepIndex % 12;
+    const chord = chordMap[(musicStepIndex / 3) % chordMap.length];
+    const intensity = Math.min(1.5, 0.8 + (levelValue - 1) * 0.12);
+
+    if (phase === 0 || phase === 6) {
+      playKick();
+    }
+
+    if (phase % 2 === 0) {
+      chord.forEach((freq, i) => {
+        const t = i * 0.02;
+        playBass(freq / 2, 0.2 + intensity * 0.04, 0.028 + intensity * 0.015);
+        playLead(freq * (phase % 4 === 0 ? 1.25 : 1), 0.13, 0.022 + intensity * 0.01);
+      });
+    } else if (phase === 3 || phase === 9) {
+      playLead(chord[0] * 1.5, 0.17, 0.03);
+      playLead(chord[2] * 1.25, 0.18, 0.024);
+    }
+
+    if (phase === 4) {
+      tone(base * 1.5, 0.18, 'triangle', 0.015, 0, musicGain);
+    }
+
+    if (phase === 10) {
+      noise(0.08, 0.012, 1800);
+    }
+
+    musicStepIndex = (musicStepIndex + 1) % 16;
+    setMusicIntensity();
+  }
+
+  function startMusic() {
+    clearInterval(musicTimer);
+    musicStepIndex = 0;
+    musicStep();
+    musicTimer = setInterval(musicStep, 180);
+  }
+
+  function attachGameListeners() {
+    try {
+      const doc = frame.contentDocument;
+      if (!doc || !doc.body) {
+        status.textContent = 'El juego cargó; el audio se conectará al entrar.';
+        return;
+      }
+
+      if (observer) observer.disconnect();
+
+      const score = doc.getElementById('score');
+      const hp = doc.getElementById('hp');
+      const level = doc.getElementById('level');
+      const canvas = doc.getElementById('game');
+
+      let prevScore = Number(score?.textContent || 0);
+      let prevHp = hp?.textContent || '20/20';
+      let prevLevel = Number(level?.textContent || 1);
+
+      const tick = () => {
+        const s = Number(score?.textContent || 0);
+        const h = hp?.textContent || '20/20';
+        const l = Number(level?.textContent || 1);
+
+        if (s > prevScore) {
+          signalKill();
+          prevScore = s;
+        }
+
+        if (h !== prevHp) {
+          signalHit();
+          prevHp = h;
+        }
+
+        if (l !== prevLevel) {
+          levelValue = l;
+          signalLevelUp();
+          prevLevel = l;
+        }
+      };
+
+      doc.addEventListener('keydown', (e) => {
+        if (e.key === 'Shift') signalShield();
+        if (e.key === ' ' || e.key.toLowerCase() === 'f') signalShot();
+      }, true);
+
+      canvas?.addEventListener('pointerdown', signalShot, true);
+
+      observer = new MutationObserver(() => {
+        tick();
+      });
+
+      [score, hp, level].forEach((node) => {
+        if (node) observer.observe(node, { childList: true, characterData: true, subtree: true });
+      });
+
+      status.textContent = 'Música y efectos conectados al juego.';
+    } catch (err) {
+      status.textContent = 'No pude conectar el audio al juego. Recarga la página.';
+    }
+  }
+
+  button.addEventListener('click', async () => {
+    ensureAudio();
+    if (!audio) return;
+    await audio.resume();
+    enabled = !enabled;
+    button.textContent = enabled ? 'Silenciar música y efectos' : 'Activar música y efectos';
+    status.textContent = enabled ? 'Audio activado: synthwave + efectos.' : 'Audio silenciado.';
+
+    if (enabled) {
+      startMusic();
+      attachGameListeners();
+    } else {
+      clearInterval(musicTimer);
+    }
+  });
+
+  volume.addEventListener('input', () => {
+    if (master && audio) {
+      master.gain.setTargetAtTime(Number(volume.value) / 100, audio.currentTime, 0.05);
+    }
+  });
+
+  frame.addEventListener('load', () => {
+    if (enabled) attachGameListeners();
+  });
 })();
 </script>
 </body>
