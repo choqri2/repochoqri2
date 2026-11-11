@@ -1,70 +1,372 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Neon Drift: Breach</title>
-<style>
-:root{--panel:#0e171dee;--cyan:#9af6d5;--lime:#c7ff76;--red:#ff6a7a;--ink:#ebf9ff;--muted:#a7b5bd}*{box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;margin:0;background:#080e13;color:var(--ink);font-family:system-ui,Arial,sans-serif;user-select:none;touch-action:none}body{display:grid;place-items:center}.gameWrap{position:relative;width:100%;height:100%;display:grid;place-items:center}.hud{position:absolute;inset:10px 12px auto;display:flex;justify-content:space-between;gap:5px;z-index:5;pointer-events:none}.stat{min-width:64px;padding:6px 8px;text-align:center;background:#0e171dcc;border:1px solid #ffffff24;border-radius:8px}.label{font-size:8px;letter-spacing:1.3px;text-transform:uppercase;color:#c9d9dd}.value{font-weight:900;font-size:15px;color:var(--cyan);margin-top:2px}.danger{color:#ff8a8a}.shopButton{pointer-events:auto;position:absolute;top:10px;right:16px;z-index:10;padding:8px 12px;border:1px solid #c7ff7655;background:#111c24;color:#ebf9ff;border-radius:8px;font-weight:700;cursor:pointer}.shopButton:hover{background:#203642;border-color:var(--lime)}.panel{position:absolute;z-index:8;left:50%;top:50%;transform:translate(-50%,-50%);width:min(90vw,440px);max-height:86vh;overflow:auto;padding:22px;background:var(--panel);border:1px solid #90ffc655;border-radius:12px;box-shadow:0 18px 70px #0009;text-align:center}.hidden{display:none!important}h1{margin:0 0 10px;font-size:clamp(34px,8vw,60px);line-height:.95}h1 span{color:var(--lime)}h2{margin:0 0 8px;color:var(--lime)}.sub{margin-bottom:14px;color:var(--cyan);font-size:11px;letter-spacing:2px;text-transform:uppercase}.small{margin:12px 0;color:var(--muted);font-size:12px;line-height:1.55}button,input,select{width:100%;padding:11px 13px;margin-top:8px;border-radius:8px;border:1px solid #c7ff7655;background:#162631;color:var(--ink);font:inherit;font-weight:700;cursor:pointer}button:hover{background:#203642;border-color:var(--lime)}button.secondary{background:#111c24;border-color:#ffffff20}.cards,.scoreList,.shopGrid{display:grid;gap:8px}.card{width:100%;padding:12px;text-align:left;background:#101b21;border:1px solid #c7ff7655;border-radius:8px;color:var(--ink);cursor:pointer}.card b{display:block;color:var(--lime);margin-bottom:4px}.card span{font-size:12px;color:#d5dde2}.scoreItem{padding:9px;text-align:left;background:#111c22;border:1px solid #ffffff18;border-radius:7px;font-size:12px}.toast{position:absolute;z-index:9;left:50%;top:58px;transform:translateX(-50%);padding:8px 14px;border-radius:99px;background:#141d22dd;border:1px solid #a2ffb877;color:var(--lime);font-size:11px;letter-spacing:2px;font-weight:900;opacity:0;pointer-events:none;transition:opacity .2s}.toast.show{opacity:1}.hint{position:absolute;left:0;right:0;bottom:7px;text-align:center;color:#e7f1f4b8;font-size:9px;letter-spacing:.7px;pointer-events:none;z-index:3}.autoBadge{position:absolute;right:14px;bottom:28px;color:var(--lime);font-size:10px;z-index:3;pointer-events:none}.shopPanel{position:absolute;inset:45% auto auto 50%;transform:translate(-50%,-50%);z-index:11;width:min(90vw,620px);max-height:80vh;overflow:auto;padding:18px;background:#0d171d;border:1px solid #c1ff7155;border-radius:12px;box-shadow:0 22px 90px rgba(0,0,0,.5)}.shopPanel h2{margin:0;color:var(--lime)}.shopHeader{display:flex;justify-content:space-between;align-items:center;gap:12px}.shopHeader .closeBtn{width:auto;padding:9px 12px;background:#2a1a1f;border:1px solid #ff6a7a;color:#fff}.shopItem{padding:12px;background:#101b21;border:1px solid #ffffff14;border-radius:8px}.shopItem b{color:var(--cyan)}.shopItem .price{color:var(--lime);font-weight:800}.shopItem button{margin-top:8px}.shopSubtitle{color:var(--muted);font-size:12px;margin:10px 0 12px}@media(max-width:600px){.stat{min-width:48px;padding:5px}.label{font-size:7px}.value{font-size:12px}.hint{font-size:7px}.shopButton{right:10px;top:8px;padding:7px 10px;font-size:12px}}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon Drift: Breach</title>
+  <style>
+    :root {
+      --bg: #070d12;
+      --panel: rgba(14, 23, 29, 0.9);
+      --cyan: #9af6d5;
+      --lime: #c7ff76;
+      --red: #ff6a7a;
+      --ink: #ebf9ff;
+      --muted: #a7b5bd;
+      --line: rgba(154, 246, 213, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: system-ui, Arial, sans-serif;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(91, 255, 210, 0.12), transparent 25%),
+        radial-gradient(circle at 80% 0%, rgba(255, 122, 122, 0.11), transparent 25%),
+        linear-gradient(180deg, #040b10 0%, #0a141a 50%, #050b11 100%);
+      color: var(--ink);
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .wrap {
+      width: min(1100px, 100%);
+      background: rgba(8, 14, 19, 0.82);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 0 40px rgba(83, 253, 196, 0.12), 0 0 80px rgba(102, 143, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      min-height: 520px;
+    }
+
+    .left {
+      padding: 48px 42px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(10, 17, 23, 0.9), rgba(10, 17, 23, 0.68));
+    }
+
+    .tag {
+      display: inline-block;
+      width: fit-content;
+      padding: 8px 12px;
+      border: 1px solid rgba(199, 255, 118, 0.55);
+      border-radius: 999px;
+      background: rgba(199, 255, 118, 0.03);
+      color: var(--lime);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 18px 0 10px;
+      font-size: clamp(42px, 7vw, 92px);
+      line-height: 0.9;
+      letter-spacing: -0.05em;
+      font-weight: 900;
+    }
+
+    h1 .accent {
+      color: var(--lime);
+    }
+
+    .subtitle {
+      color: var(--cyan);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 15px;
+      max-width: 620px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .button {
+      display: inline-block;
+      text-decoration: none;
+      padding: 14px 22px;
+      border-radius: 10px;
+      border: 1px solid rgba(199, 255, 118, 0.7);
+      background: rgba(19, 34, 28, 0.7);
+      color: var(--ink);
+      font-weight: 800;
+      transition: transform 0.18s ease, background 0.18s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      background: rgba(25, 42, 36, 0.9);
+    }
+
+    .button.primary {
+      background: linear-gradient(135deg, rgba(154, 246, 213, 0.18), rgba(199, 255, 118, 0.12));
+    }
+
+    .button.secondary {
+      background: rgba(17, 28, 36, 0.8);
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-top: 28px;
+    }
+
+    .stat {
+      min-width: 120px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      background: rgba(17, 28, 36, 0.56);
+    }
+
+    .stat strong {
+      display: block;
+      color: var(--lime);
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .right {
+      background:
+        linear-gradient(180deg, rgba(15, 21, 27, 0.15), rgba(5, 11, 17, 0.5)),
+        radial-gradient(circle at 50% 30%, rgba(154, 246, 213, 0.09), transparent 30%),
+        #0a1218;
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 520px;
+      padding: 24px;
+    }
+
+    .right::before {
+      content: "";
+      position: absolute;
+      inset: 22px;
+      border: 1px solid rgba(154, 246, 213, 0.22);
+      border-radius: 18px;
+      box-shadow: inset 0 0 20px rgba(154, 246, 213, 0.06);
+    }
+
+    .screen {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 420px);
+      aspect-ratio: 16 / 10;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background:
+        linear-gradient(180deg, rgba(11, 17, 22, 0.96), rgba(8, 13, 18, 0.9)),
+        repeating-linear-gradient(
+          0deg,
+          rgba(255,255,255,0.02),
+          rgba(255,255,255,0.02) 2px,
+          transparent 2px,
+          transparent 5px
+        );
+      box-shadow: 0 0 30px rgba(100, 200, 255, 0.18);
+      overflow: hidden;
+    }
+
+    .screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0 48%, rgba(154, 246, 213, 0.08) 50%, transparent 52%),
+        linear-gradient(0deg, transparent 0 48%, rgba(154, 246, 213, 0.06) 50%, transparent 52%);
+      background-size: 18px 18px;
+      opacity: 0.6;
+    }
+
+    .screen-inner {
+      position: absolute;
+      inset: 18px;
+      border: 1px solid rgba(154, 246, 213, 0.28);
+      border-radius: 12px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(7, 13, 18, 0.92), rgba(13, 20, 25, 0.88));
+    }
+
+    .ship {
+      position: absolute;
+      left: 48%;
+      top: 66%;
+      width: 18px;
+      height: 18px;
+      transform: translate(-50%, -50%) rotate(90deg);
+      background: linear-gradient(180deg, #b7ffd6, #9af6d5);
+      clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+      box-shadow: 0 0 18px rgba(154, 246, 213, 0.7);
+    }
+
+    .enemy {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      background: linear-gradient(180deg, #ff6a7a, #ff9a5b);
+      border-radius: 50%;
+      box-shadow: 0 0 14px rgba(255, 106, 122, 0.7);
+    }
+
+    .enemy:nth-child(2) { left: 60%; top: 28%; }
+    .enemy:nth-child(3) { left: 35%; top: 42%; }
+    .enemy:nth-child(4) { left: 70%; top: 52%; }
+
+    .hud-mini {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      top: 12px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #dfeef5;
+    }
+
+    .bottom-bar {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      padding: 24px 28px 28px;
+      border-top: 1px solid rgba(154,246,213,0.18);
+      background: rgba(7, 13, 18, 0.6);
+    }
+
+    .feature {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px;
+      background: rgba(17, 28, 36, 0.4);
+    }
+
+    .feature strong {
+      display: block;
+      color: var(--lime);
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .feature span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 820px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .left, .right {
+        min-height: auto;
+      }
+
+      .bottom-bar {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="gameWrap">
-  <div class="hud">
-    <div class="stat"><div class="label">Puntos</div><div class="value" id="score">0</div></div><div class="stat"><div class="label">Zona</div><div class="value" id="level">1</div></div><div class="stat"><div class="label">Créditos</div><div class="value" id="credits">0</div></div><div class="stat"><div class="label">HP</div><div class="value danger" id="hp">20/20</div></div><div class="stat"><div class="label">Arma</div><div class="value" id="weapon">Blaster</div></div><div class="stat"><div class="label">Enemigos</div><div class="value" id="enemyCount">0</div></div>
+  <div class="wrap">
+    <div class="hero">
+      <div class="left">
+        <div class="tag">Cyberpunk arena</div>
+        <h1>NEON <span class="accent">DRIFT</span></h1>
+        <div class="subtitle">Breach protocol · Arena roguelite</div>
+        <p>
+          Sobrevive a las oleadas, gana créditos al derrotar enemigos, compra mejoras en la tienda
+          y avanza lo más lejos que puedas en una arena llena de robots, caos y neon.
+        </p>
+
+        <div class="actions">
+          <a class="button primary" href="https://choqri2.github.io/repochoqri2/audio.html" target="_blank" rel="noreferrer">Jugar ahora</a>
+          <a class="button secondary" href="https://github.com/choqri2/repochoqri2" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <strong>3+</strong>
+            <span>armas</span>
+          </div>
+          <div class="stat">
+            <strong>8+</strong>
+            <span>mejoras</span>
+          </div>
+          <div class="stat">
+            <strong>∞</strong>
+            <span>zona</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="screen">
+          <div class="screen-inner">
+            <div class="hud-mini">
+              <span>PUNTOS 420</span>
+              <span>ZONA 5</span>
+            </div>
+            <div class="ship"></div>
+            <div class="enemy"></div>
+            <div class="enemy"></div>
+            <div class="enemy"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="feature">
+        <strong>Rápido</strong>
+        <span>Combates intensos, disparos automáticos y acción constante.</span>
+      </div>
+      <div class="feature">
+        <strong>Mejoras</strong>
+        <span>Compra armas y habilidades con créditos conseguidos en cada partida.</span>
+      </div>
+      <div class="feature">
+        <strong>Boss</strong>
+        <span>Desafía enemigos más fuertes y prueba nuevas estrategias cada ronda.</span>
+      </div>
+    </div>
   </div>
-  <button class="shopButton" id="shopOpenBtn">Tienda</button><div class="toast" id="toast">¡Zona despejada!</div><div class="autoBadge" id="autoBadge">AUTO STRAFE: ON (Q) · AUTO FIRE: ON (F)</div>
-  <section class="panel" id="menu"><h1>NEON <span>DRIFT</span></h1><div class="sub">Breach protocol · Arena roguelite</div><p class="small">Elimina robots, gana créditos y compra mejoras entre zonas.</p><button id="startBtn">Iniciar incursión</button><button class="secondary" id="scoresBtn">Récords</button><button class="secondary" id="helpBtn">Controles</button><button class="secondary" id="adminBtn">Admin local</button></section>
-  <section class="panel hidden" id="help"><h2>Controles</h2><p class="small">WASD / flechas: moverse. El jugador apunta y dispara automáticamente al enemigo más cercano. F: auto-disparo. Q: auto-strafe. Shift: defensa temporal. Esc: pausa/reanuda. El tiempo de cada zona aumenta 5 segundos por nivel, hasta 60.</p><button class="secondary" id="helpBack">Volver</button></section>
-  <section class="panel hidden" id="scoresPanel"><h2>Récords locales</h2><div class="scoreList" id="scores"></div><button class="secondary" id="scoresBack">Volver</button></section>
-  <section class="panel hidden" id="cardsPanel"><h2>¡ZONA DESPEJADA!</h2><p class="small" id="cardText"></p><div class="cards" id="cards"></div></section>
-  <section class="panel hidden" id="pausePanel"><h2>Pausa</h2><button id="resumeBtn">Reanudar</button><button class="secondary" id="restartBtn">Reiniciar</button><button class="secondary" id="menuFromPause">Menú</button></section>
-  <section class="panel hidden" id="overPanel"><h2>Incursión terminada</h2><div class="sub" id="finalScore"></div><p class="small" id="finalText"></p><button id="againBtn">Intentar otra vez</button><button class="secondary" id="menuFromOver">Menú principal</button></section>
-  <section class="panel hidden" id="adminPanel"><h2>Admin de pruebas local</h2><p class="small" id="adminStatus">Contraseña local predeterminada: admin123 (no es seguridad real).</p><input type="password" id="adminPassword" placeholder="Contraseña"><button id="adminLogin">Entrar</button><div id="adminActions" class="hidden"><select id="adminWeapon"><option value="blaster">Blaster</option><option value="shotgun">Shotgun</option><option value="laser">Laser</option><option value="railgun">Railgun</option></select><button id="adminSetWeapon">Cambiar arma</button><button id="adminHeal">Recuperar HP</button><button id="adminGod">Alternar invulnerabilidad</button><button id="adminClear">Eliminar enemigos</button><button id="adminBoss">Invocar jefe</button></div><button class="secondary" id="adminClose">Cerrar</button></section>
-  <section id="shopPanel" class="shopPanel hidden"><div class="shopHeader"><h2>Tienda</h2><button class="closeBtn" id="shopCloseBtn">Cerrar</button></div><p class="shopSubtitle">Gana créditos al derrotar enemigos. Compra armas y mejoras para la siguiente ronda.</p><div class="shopGrid" id="shopGrid"></div></section>
-  <canvas id="game" width="960" height="540" aria-label="Neon Drift"></canvas><div class="hint">MOVER WASD/FLECHAS · AUTO-DISPARO F · DEFENSA SHIFT · PAUSA ESC · AUTO STRAFE Q</div>
-</div>
-<script>
-const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),$=id=>document.getElementById(id);
-const ui={score:$('score'),level:$('level'),hp:$('hp'),weapon:$('weapon'),enemyCount:$('enemyCount'),credits:$('credits'),menu:$('menu'),help:$('help'),scores:$('scoresPanel'),scoreList:$('scores'),cards:$('cardsPanel'),cardText:$('cardText'),cardList:$('cards'),pause:$('pausePanel'),over:$('overPanel'),final:$('finalScore'),finalText:$('finalText'),toast:$('toast'),admin:$('adminPanel'),adminStatus:$('adminStatus'),adminActions:$('adminActions'),shopOpenBtn:$('shopOpenBtn'),shopPanel:$('shopPanel'),shopGrid:$('shopGrid')};
-const WEAPONS={blaster:{name:'Blaster',rate:10,damage:1,speed:9,pellets:1,color:'#b8ffd9',radius:4},shotgun:{name:'Shotgun',rate:18,damage:2,speed:8,pellets:5,color:'#ffd166',radius:4},laser:{name:'Laser',rate:6,damage:1,speed:13,pellets:1,color:'#9ae2ff',radius:3},railgun:{name:'Railgun',rate:24,damage:5,speed:15,pellets:1,color:'#ff9ae0',radius:6}};
-const player={x:480,y:420,r:13,vx:0,vy:0,fireCooldown:0,guardCooldown:0,guardTimer:0,guardCharges:0};const enemies=[],shots=[],enemyShots=[],particles=[],keys={};
-const state={running:false,paused:false,score:0,level:1,hp:20,maxHp:20,shield:0,invuln:0,weapon:'blaster',fireRate:10,damage:1,bulletSpeed:9,pellets:1,bulletColor:'#b8ffd9',moveSpeed:4.4,holdFire:false,autoFire:true,autoStrafe:true,autoDirection:1,autoFlipAt:0,godMode:false,frame:0,zoneSeconds:30,zoneDuration:30,spawnCooldown:0,credits:0};
-let pointer={x:480,y:200,active:false},toastTime=0,adminUnlocked=false,lastTime=0;
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-function getZoneDuration(level){return Math.min(30+(level-1)*5,60)}
-function updateHud(){ui.score.textContent=state.score;ui.level.textContent=state.level;ui.hp.textContent=`${state.hp}/${state.maxHp}`;ui.weapon.textContent=WEAPONS[state.weapon].name;ui.enemyCount.textContent=enemies.length;ui.credits.textContent=state.credits;$('autoBadge').textContent=`AUTO STRAFE: ${state.autoStrafe?'ON':'OFF'} (Q) · AUTO FIRE: ${state.autoFire?'ON':'OFF'} (F)`}
-function showToast(t){ui.toast.textContent=t;ui.toast.classList.add('show');toastTime=1.2}
-function setWeapon(id){const w=WEAPONS[id]||WEAPONS.blaster;state.weapon=id;state.fireRate=w.rate;state.damage=w.damage;state.bulletSpeed=w.speed;state.pellets=w.pellets;state.bulletColor=w.color;updateHud()}
-function spawnEnemy(){let x,y;do{x=45+Math.random()*870;y=45+Math.random()*450}while(Math.hypot(x-player.x,y-player.y)<130);const roll=Math.random(),type=roll<.15?'brute':roll<.43?'shooter':'drone',hp=type==='brute'?4+Math.floor(state.level/2):type==='shooter'?2+state.level:1+Math.floor(state.level/3);enemies.push({x,y,r:type==='brute'?22:type==='shooter'?16:13,type,hp,maxHp:hp,speed:(type==='brute'?.9:type==='shooter'?1.1:1.5)+Math.min(state.level*.025,.5),cooldown:45+Math.random()*65,phase:Math.random()*6.28})}
-function spawnWave(){enemies.length=0;shots.length=0;enemyShots.length=0;state.zoneDuration=getZoneDuration(state.level);state.zoneSeconds=state.zoneDuration;state.spawnCooldown=.8;const count=Math.min(12+state.level*3,36);for(let i=0;i<count;i++)spawnEnemy();updateHud()}
-function startRun(){Object.assign(state,{running:true,paused:false,score:0,level:1,hp:20,maxHp:20,shield:0,invuln:0,moveSpeed:4.4,autoStrafe:true,autoDirection:1,autoFlipAt:0,godMode:false,holdFire:false,autoFire:true,frame:0,credits:0});setWeapon('blaster');Object.assign(player,{x:480,y:420,vx:0,vy:0,fireCooldown:0,guardCooldown:0,guardTimer:0,guardCharges:0});for(const id of ['menu','help','scoresPanel','cardsPanel','pausePanel','overPanel','shopPanel'])$(id).classList.add('hidden');ui.shopOpenBtn.classList.remove('hidden');spawnWave();updateHud()}
-function saveScore(){try{const arr=JSON.parse(localStorage.getItem('neonDriftScores')||'[]');arr.push({score:state.score,zone:state.level,date:new Date().toLocaleDateString()});arr.sort((a,b)=>b.score-a.score);localStorage.setItem('neonDriftScores',JSON.stringify(arr.slice(0,8)));localStorage.setItem('neonDriftBest',String(Math.max(state.score,Number(localStorage.getItem('neonDriftBest')||0))))}catch{}}
-function showScores(){let arr=[];try{arr=JSON.parse(localStorage.getItem('neonDriftScores')||'[]')}catch{}ui.scoreList.innerHTML='';if(!arr.length)ui.scoreList.innerHTML='<div class="scoreItem">Aún no hay récords.</div>';arr.slice(0,5).forEach((s,i)=>{const d=document.createElement('div');d.className='scoreItem';d.textContent=`#${i+1} · ${s.score} puntos · Zona ${s.zone} · ${s.date}`;ui.scoreList.appendChild(d)})}
-function gameOver(){if(!state.running)return;state.running=false;ui.shopOpenBtn.classList.add('hidden');saveScore();ui.final.textContent=`${state.score} puntos`;ui.finalText.textContent=`Llegaste a la zona ${state.level}.`;ui.over.classList.remove('hidden')}
-function nearestEnemy(){let nearest=null,best=Infinity;for(const e of enemies){const d=(player.x-e.x)**2+(player.y-e.y)**2;if(d<best){best=d;nearest=e}}return nearest?{enemy:nearest,distance:Math.sqrt(best)}:null}
-function aimAngle(){const n=nearestEnemy();return n?Math.atan2(n.enemy.y-player.y,n.enemy.x-player.x):pointer.active?Math.atan2(pointer.y-player.y,pointer.x-player.x):-Math.PI/2}
-function shoot(){if(!state.running||state.paused||player.fireCooldown>0||!enemies.length)return;const angle=aimAngle(),n=Math.max(1,state.pellets);for(let i=0;i<n;i++){const a=angle+(n===1?0:(i-(n-1)/2)*.2);shots.push({x:player.x+Math.cos(a)*15,y:player.y+Math.sin(a)*15,vx:Math.cos(a)*state.bulletSpeed,vy:Math.sin(a)*state.bulletSpeed,r:WEAPONS[state.weapon].radius,damage:state.damage,color:state.bulletColor})}player.fireCooldown=state.fireRate}
-function enemyShoot(e){const a=Math.atan2(player.y-e.y,player.x-e.x),n=e.type==='brute'?3:1;for(let i=0;i<n;i++){const angle=a+(n===3?(i-1)*.2:0),speed=e.type==='brute'?3.5:3.1;enemyShots.push({x:e.x,y:e.y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,r:4,color:'#ff974d'})}
-function burst(x,y,color,n=8){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=.5+Math.random()*3;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.35+Math.random()*.25,color,r:1+Math.random()*3})}
-function activateGuard(){if(!state.running||state.paused||player.guardCooldown>0||player.guardTimer>0)return;player.guardTimer=1.5;player.guardCharges=3;player.guardCooldown=3.5;burst(player.x,player.y,'#9af6d5',16);showToast('Escudo activado · 3 impactos')}
-function damagePlayer(){if(!state.running||state.invuln>0)return;if(state.godMode){state.invuln=.2;return}if(player.guardTimer>0&&player.guardCharges>0){player.guardCharges--;state.invuln=.14;burst(player.x,player.y,'#c7ff76',14);if(!player.guardCharges){player.guardTimer=0;showToast('Escudo agotado')}else showToast(`Escudo · ${player.guardCharges} impactos`);return}if(state.shield){state.shield--;state.invuln=.7;burst(player.x,player.y,'#9af6d5',12);return}state.hp--;state.invuln=.9;burst(player.x,player.y,'#ff6a7a',12);updateHud();if(state.hp<=0)gameOver()}
-function updatePlayer(dt){let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);if(state.autoStrafe){const n=nearestEnemy();if(n){const delta=player.x-n.enemy.x;if(n.distance<250&&Math.abs(delta)>18)state.autoDirection=Math.sign(delta);else if(player.x<90)state.autoDirection=1;else if(player.x>870)state.autoDirection=-1;else if(state.frame>=state.autoFlipAt){state.autoDirection*=-1;state.autoFlipAt=state.frame+55}dx=clamp(dx+state.autoDirection*.72,-1,1)}}player.vx=(player.vx+dx*.32)*.86;player.vy=(player.vy+dy*.32)*.86;const maxSpeed=state.moveSpeed*(player.guardTimer>0?.52:1),m=Math.hypot(player.vx,player.vy);if(m>maxSpeed){player.vx=player.vx/m*maxSpeed;player.vy=player.vy/m*maxSpeed}player.x=clamp(player.x+player.vx,player.r,960-player.r);player.y=clamp(player.y+player.vy,player.r,540-player.r);if(state.autoFire||state.holdFire)shoot();player.fireCooldown=Math.max(0,player.fireCooldown-dt*60);state.invuln=Math.max(0,state.invuln-dt);player.guardCooldown=Math.max(0,player.guardCooldown-dt);player.guardTimer=Math.max(0,player.guardTimer-dt);if(player.guardTimer===0)player.guardCharges=0}
-function updateEnemies(dt){for(const e of enemies){e.phase+=dt*3;const dx=player.x-e.x,dy=player.y-e.y,d=Math.hypot(dx,dy)||1;let vx=dx/d*e.speed,vy=dy/d*e.speed;if(e.type==='shooter'&&d<260){vx*=-.65;vy*=-.65}e.x=clamp(e.x+vx+Math.sin(e.phase)*.4,e.r,960-e.r);e.y=clamp(e.y+vy+Math.cos(e.phase)*.4,e.r,540-e.r);if(d<e.r+player.r)damagePlayer();e.cooldown-=dt*60;if(e.cooldown<=0){if(e.type!=='drone')enemyShoot(e);e.cooldown=Math.max(35,100-state.level*2)}}}
-function makeCards(){const opts=[{name:'Escopeta',desc:'Cambia a disparos múltiples y potentes.',apply:()=>setWeapon('shotgun')},{name:'Láser',desc:'Dispara rápido y con gran velocidad.',apply:()=>setWeapon('laser')},{name:'Railgun',desc:'Disparo lento con mucho daño.',apply:()=>setWeapon('railgun')},{name:'Daño +1',desc:'Tus balas hacen más daño.',apply:()=>state.damage++},{name:'Cadencia',desc:'Dispara más seguido.',apply:()=>state.fireRate=Math.max(3,state.fireRate-2)},{name:'Multidisparo',desc:'Añade un proyectil a cada ráfaga.',apply:()=>state.pellets++},{name:'Escudo',desc:'Bloquea un impacto adicional.',apply:()=>state.shield++},{name:'Reparación',desc:'Aumenta la vida máxima y la recupera.',apply:()=>{state.maxHp+=3;state.hp=state.maxHp}},{name:'Turbo',desc:'Aumenta la velocidad de movimiento.',apply:()=>state.moveSpeed=Math.min(7,state.moveSpeed+.45)}].sort(()=>Math.random()-.5).slice(0,3);ui.cardList.innerHTML='';ui.cardText.textContent=`¡Sobreviviste ${state.zoneDuration} segundos en la zona ${state.level}! Elige una mejora para la zona ${state.level+1}.`;for(const opt of opts){const b=document.createElement('button');b.className='card';b.innerHTML=`<b>${opt.name}</b><span>${opt.desc}</span>`;b.onclick=()=>{opt.apply();state.level++;state.running=true;ui.cards.classList.add('hidden');player.x=480;player.y=420;spawnWave();showToast('Mejora aplicada')};ui.cardList.appendChild(b)}state.running=false;ui.cards.classList.remove('hidden');showToast('¡Zona superada!')}
-function updateBullets(dt){for(let i=shots.length-1;i>=0;i--){const b=shots[i];b.x+=b.vx*dt*60;b.y+=b.vy*dt*60;let remove=b.x<0||b.x>960||b.y<0||b.y>540;for(let j=enemies.length-1;j>=0&&!remove;j--){const e=enemies[j];if(Math.hypot(b.x-e.x,b.y-e.y)<e.r+b.r){e.hp-=b.damage;remove=true;burst(b.x,b.y,b.color,4);if(e.hp<=0){state.score+=e.type==='brute'?28:e.type==='shooter'?18:10;state.credits+=e.type==='brute'?12:e.type==='shooter'?8:5;burst(e.x,e.y,'#9af6d5',12);enemies.splice(j,1)}}}if(remove)shots.splice(i,1)}for(let i=enemyShots.length-1;i>=0;i--){const b=enemyShots[i];b.x+=b.vx*dt*60;b.y+=b.vy*dt*60;if(Math.hypot(b.x-player.x,b.y-player.y)<player.r+b.r){enemyShots.splice(i,1);damagePlayer()}else if(b.x<0||b.x>960||b.y<0||b.y>540)enemyShots.splice(i,1)}}
-function draw(){ctx.fillStyle='#0c1519';ctx.fillRect(0,0,960,540);for(let x=0;x<960;x+=48)for(let y=0;y<540;y+=48){ctx.fillStyle=(x/48+y/48)%2?'#101c20':'#0d171b';ctx.fillRect(x,y,47,47)}ctx.strokeStyle='#9af6d533';ctx.lineWidth=2;ctx.strokeRect(18,18,924,504);for(const e of enemies){ctx.save();ctx.translate(e.x,e.y);ctx.fillStyle=e.type==='brute'?'#ff596b':e.type==='shooter'?'#ff9b4d':'#72f0be';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=14;if(e.type==='brute')ctx.fillRect(-e.r,-e.r,e.r*2,e.r*2);else if(e.type==='shooter'){ctx.rotate(Math.PI/4);ctx.fillRect(-e.r*.7,-e.r*.7,e.r*1.4,e.r*1.4)}else{ctx.beginPath();ctx.arc(0,0,e.r,0,6.28);ctx.fill()}ctx.shadowBlur=0;ctx.fillStyle='#1b2728';ctx.fillRect(-e.r,-e.r-8,e.r*2,4);ctx.fillStyle='#c7ff76';ctx.fillRect(-e.r,-e.r-8,e.r*2*e.hp/e.maxHp,4);ctx.restore()}for(const b of shots.concat(enemyShots)){ctx.fillStyle=b.color||'#ff974d';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=12;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,6.28);ctx.fill()}ctx.shadowBlur=0;ctx.save();ctx.translate(player.x,player.y);ctx.rotate(aimAngle());if(state.invuln>0&&Math.floor(state.frame/3)%2===0)ctx.globalAlpha=.4;ctx.fillStyle='#1a2a2f';ctx.strokeStyle='#b7ffd6';ctx.lineWidth=2;ctx.shadowColor='#9af6d5';ctx.shadowBlur=15;ctx.beginPath();ctx.moveTo(16,0);ctx.lineTo(4,9);ctx.lineTo(-10,8);ctx.lineTo(-7,0);ctx.lineTo(-10,-8);ctx.lineTo(4,-9);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#f4fff7';ctx.fillRect(3,-3,14,6);ctx.restore();if(state.shield||player.guardTimer>0){const active=player.guardTimer>0,radius=(player.r+(active?14:7))*(1+Math.sin(state.frame*.22)*.07);ctx.save();ctx.globalAlpha=active?.75:.4;ctx.strokeStyle=active?'#c7ff76':'#a8ffce';ctx.lineWidth=active?3:2;ctx.shadowColor='#9af6d5';ctx.shadowBlur=active?24:12;ctx.beginPath();ctx.arc(player.x,player.y,radius,0,Math.PI*2);ctx.stroke();if(active){ctx.globalAlpha=.5;ctx.beginPath();ctx.arc(player.x,player.y,radius+6,state.frame*.08,state.frame*.08+Math.PI*1.55);ctx.stroke();ctx.beginPath();ctx.arc(player.x,player.y,radius-5,-state.frame*.06,-state.frame*.06+Math.PI*1.35);ctx.stroke();for(let i=0;i<player.guardCharges;i++){const a=state.frame*.09+i*Math.PI*2/3;ctx.fillStyle='#efffd3';ctx.beginPath();ctx.arc(player.x+Math.cos(a)*radius,player.y+Math.sin(a)*radius,3,0,Math.PI*2);ctx.fill()}}ctx.restore()}for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.life-=1/60;ctx.globalAlpha=Math.max(0,p.life/.6);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.r,p.r);if(p.life<=0)particles.splice(i,1)}ctx.globalAlpha=1}
-function tick(now){const dt=Math.min(.05,lastTime?(now-lastTime)/1000:1/60);lastTime=now;if(state.running&&!state.paused){state.frame++;state.zoneSeconds-=dt;state.spawnCooldown-=dt;updatePlayer(dt);updateEnemies(dt);updateBullets(dt);if(state.zoneSeconds<=0){state.zoneSeconds=0;updateHud();makeCards()}else if(enemies.length===0&&state.spawnCooldown<=0){for(let i=0;i<Math.min(5+state.level,12);i++)spawnEnemy();state.spawnCooldown=1.1}updateHud()}if(toastTime>0){toastTime-=dt;if(toastTime<=0)ui.toast.classList.remove('show')}draw();requestAnimationFrame(tick)}
-function openPause(){if(!state.running||!ui.cards.classList.contains('hidden')===false||!ui.shopPanel.classList.contains('hidden'))return;state.paused=!state.paused;ui.pause.classList.toggle('hidden',!state.paused)}
-function closeAdmin(){ui.admin.classList.add('hidden');$('adminPassword').value='';ui.adminActions.classList.add('hidden');adminUnlocked=false;ui.adminStatus.textContent='Contraseña local predeterminada: admin123 (no es seguridad real).'}
-const shopCatalog=[{id:'shotgun',name:'Escopeta',desc:'Añade la escopeta de 5 disparos.',price:80,apply:()=>setWeapon('shotgun')},{id:'laser',name:'Láser',desc:'Aumenta la cadencia con arma láser.',price:120,apply:()=>setWeapon('laser')},{id:'railgun',name:'Railgun',desc:'Potencia el daño con un disparo pesado.',price:170,apply:()=>setWeapon('railgun')},{id:'damage',name:'Daño +1',desc:'Cada bala hace 1 punto más.',price:75,apply:()=>state.damage++},{id:'cadence',name:'Cadencia +',desc:'Reduce el tiempo de recarga.',price:90,apply:()=>state.fireRate=Math.max(3,state.fireRate-2)},{id:'repair',name:'Reparación',desc:'Recupera salud y sube la vida máxima.',price:70,apply:()=>{state.maxHp+=2;state.hp=Math.min(state.maxHp,state.hp+6)}},{id:'shield',name:'Escudo +1',desc:'Añade un impacto extra a tu defensa.',price:95,apply:()=>state.shield++},{id:'turbo',name:'Turbo',desc:'Aumenta velocidad de movimiento.',price:80,apply:()=>state.moveSpeed=Math.min(8,state.moveSpeed+.45)}];
-function renderShop(){ui.shopGrid.innerHTML='';for(const item of shopCatalog){const el=document.createElement('div');el.className='shopItem';el.innerHTML=`<b>${item.name}</b><div class="small">${item.desc}</div><div class="price">${item.price} créditos</div><button>${state.credits>=item.price?'Comprar':'Sin créditos'}</button>`;const btn=el.querySelector('button');btn.disabled=state.credits<item.price;btn.onclick=()=>purchaseItem(item);ui.shopGrid.appendChild(el)}}
-function purchaseItem(item){if(!state.running)return;if(state.credits<item.price){showToast('Créditos insuficientes');return}state.credits-=item.price;item.apply();showToast(`${item.name} comprado`);renderShop();updateHud()}
-function openShop(){if(!state.running){showToast('Inicia una partida');return}state.paused=true;ui.pause.classList.add('hidden');ui.shopPanel.classList.remove('hidden');renderShop();updateHud()}
-function closeShop(){ui.shopPanel.classList.add('hidden');state.paused=false;updateHud()}
-$('startBtn').onclick=startRun;$('againBtn').onclick=startRun;$('restartBtn').onclick=startRun;$('helpBtn').onclick=()=>{ui.menu.classList.add('hidden');ui.help.classList.remove('hidden')};$('helpBack').onclick=()=>{ui.help.classList.add('hidden');ui.menu.classList.remove('hidden')};$('scoresBtn').onclick=()=>{showScores();ui.menu.classList.add('hidden');ui.scores.classList.remove('hidden')};$('scoresBack').onclick=()=>{ui.scores.classList.add('hidden');ui.menu.classList.remove('hidden')};$('resumeBtn').onclick=()=>{state.paused=false;ui.pause.classList.add('hidden');ui.shopPanel.classList.add('hidden')};$('menuFromPause').onclick=()=>{state.running=false;state.paused=false;ui.pause.classList.add('hidden');ui.menu.classList.remove('hidden');ui.shopOpenBtn.classList.add('hidden')};$('menuFromOver').onclick=()=>{ui.over.classList.add('hidden');ui.menu.classList.remove('hidden');ui.shopOpenBtn.classList.add('hidden')};$('adminBtn').onclick=()=>{ui.admin.classList.remove('hidden');$('adminPassword').focus()};$('adminClose').onclick=closeAdmin;$('adminLogin').onclick=()=>{if($('adminPassword').value==='admin123'){adminUnlocked=true;ui.adminStatus.textContent='Admin local habilitado';ui.adminActions.classList.remove('hidden')}else ui.adminStatus.textContent='Contraseña incorrecta'};$('adminSetWeapon').onclick=()=>{if(adminUnlocked)setWeapon($('adminWeapon').value)};$('adminHeal').onclick=()=>{if(adminUnlocked){state.hp=state.maxHp;state.shield++;updateHud()}};$('adminGod').onclick=()=>{if(adminUnlocked)state.godMode=!state.godMode};$('adminClear').onclick=()=>{if(adminUnlocked){enemies.length=0;updateHud()}};$('adminBoss').onclick=()=>{if(adminUnlocked){const boss={x:480,y:120,r:28,type:'brute',hp:55+state.level*12,maxHp:55+state.level*12,speed:1.2+state.level*.05,cooldown:25,phase:0,isBoss:true};enemies.push(boss);showToast('¡JEFE INVOCADO!');updateHud()}};
-ui.shopOpenBtn.onclick=openShop;$('shopCloseBtn').onclick=closeShop;ui.shopOpenBtn.classList.add('hidden');
-function canvasPoint(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*960/r.width,y:(e.clientY-r.top)*540/r.height}}canvas.addEventListener('pointermove',e=>{const p=canvasPoint(e);pointer.x=p.x;pointer.y=p.y;pointer.active=true});canvas.addEventListener('pointerdown',e=>{const p=canvasPoint(e);pointer.x=p.x;pointer.y=p.y;pointer.active=true;canvas.setPointerCapture?.(e.pointerId)});
-window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();if(e.key==='Escape'){if(!ui.shopPanel.classList.contains('hidden'))closeShop();else openPause()}if(e.key===' '&&state.running&&!state.paused)state.holdFire=true;if(e.key==='Shift'&&!e.repeat)activateGuard();if(e.key.toLowerCase()==='q'&&!e.repeat){state.autoStrafe=!state.autoStrafe;showToast(`Auto strafe ${state.autoStrafe?'ON':'OFF'}`);updateHud()}if(e.key.toLowerCase()==='f'&&!e.repeat){state.autoFire=!state.autoFire;showToast(`Auto-disparo ${state.autoFire?'ON':'OFF'}`);updateHud()}if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='a')ui.admin.classList.remove('hidden')});window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;if(e.key===' ')state.holdFire=false});window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;state.holdFire=false});
-updateHud();requestAnimationFrame(tick);
-</script>
 </body>
 </html>
