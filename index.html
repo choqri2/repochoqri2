@@ -1,64 +1,689 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Neon Drift</title>
-<style>
-:root{--bg:#070b14;--fg:#eaf6ff;--cyan:#00ffe0;--pink:#ff2d95;--gold:#ffd166;--line:#2a334a}*{box-sizing:border-box;margin:0;padding:0}html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,monospace;background:radial-gradient(circle at top,#111a2b,#070b14 68%);color:var(--fg);user-select:none;touch-action:none}body{display:flex;align-items:center;justify-content:center}canvas{display:block;width:min(96vw,960px);height:auto;border:1px solid var(--line);box-shadow:0 0 30px #00ffe033,0 0 80px #ff2d9522}.hud{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;z-index:10;pointer-events:none}.stat{background:#121a2acc;border:1px solid #ffffff20;border-radius:10px;padding:7px 11px;min-width:72px;text-align:center}.label{color:var(--cyan);font-size:10px;letter-spacing:1px;text-transform:uppercase}.value{font-size:18px;font-weight:bold;margin-top:3px}.gold{color:var(--gold)}.alert{position:absolute;top:76px;left:50%;transform:translateX(-50%);z-index:11;color:#ff654f;font-weight:bold;letter-spacing:2px;text-shadow:0 0 12px red;opacity:0;pointer-events:none;white-space:nowrap}.alert.show{opacity:1}.panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(90vw,440px);max-height:88vh;overflow:auto;padding:24px 21px;background:#0a0f1aee;border:1px solid #ffffff22;border-radius:16px;text-align:center;z-index:20;box-shadow:0 20px 50px #0009}.hidden{display:none!important}h1{font-size:clamp(34px,7vw,52px);letter-spacing:3px;background:linear-gradient(90deg,var(--cyan),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px}h2{color:var(--cyan);letter-spacing:2px;margin-bottom:12px}.sub{color:var(--pink);font-size:12px;letter-spacing:1px;margin:0 0 16px;text-transform:uppercase}.tiny{font-size:12px;color:#c5d0dc;margin:10px 0 15px;line-height:1.55}button{width:100%;padding:12px;border-radius:11px;background:linear-gradient(135deg,#101827,#1b2439);color:var(--fg);font:inherit;font-weight:bold;border:1px solid #00ffe055;cursor:pointer;margin-top:8px}button:hover{border-color:var(--cyan);box-shadow:0 0 16px #00ffe033}.secondary{background:transparent;color:var(--cyan);border-color:#ffffff30}.final{font-size:48px;color:var(--cyan);font-weight:bold;margin:8px 0 15px}.card-list,.shop-list,.score-list{display:grid;gap:8px}.ability-card,.shop-item,.score-row{padding:12px;text-align:left;border:1px solid #00ffe055;background:linear-gradient(130deg,#10202d,#1c1630);border-radius:11px}.ability-card{cursor:pointer}.ability-card strong,.shop-item strong,.score-row strong{display:block;color:var(--cyan);font-size:14px;margin-bottom:4px}.ability-card span,.shop-item span,.score-row span{font-size:11px;color:#d4deea}.shop-item button{padding:9px;margin-top:8px}.shop-item button:disabled{opacity:.5;cursor:not-allowed}.guide{text-align:left;line-height:1.55;font-size:12px;color:#dce7f0}.guide h3{margin:13px 0 5px;color:var(--cyan);font-size:13px}.guide ul{padding-left:19px}.guide li{margin:4px 0}.hint{position:absolute;bottom:7px;left:0;right:0;text-align:center;color:#d9e8efaa;font-size:10px;z-index:8;pointer-events:none}.rank-label{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:rgba(0,255,224,.15);color:var(--cyan);font-weight:bold;font-size:12px}.rank-line{display:flex;align-items:center;gap:10px}.score-row small{color:#d4deea}@media(max-width:600px){.stat{min-width:57px;padding:6px}.value{font-size:15px}.hint{font-size:8px}}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Neon Drift</title>
+  <style>
+    :root {
+      --bg: #070b14;
+      --bg2: #101827;
+      --fg: #eaf6ff;
+      --accent: #00ffe0;
+      --accent2: #ff2d95;
+      --accent3: #ffd166;
+      --panel: rgba(10,15,26,.88);
+      --line: rgba(255,255,255,.1);
+      --muted: rgba(218,232,255,.82);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      background: radial-gradient(circle at top, #0e1320 0%, var(--bg) 55%);
+      color: var(--fg);
+      overflow: hidden;
+    }
+
+    body {
+      display: flex; align-items: center; justify-content: center;
+      user-select: none; -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    canvas {
+      display: block;
+      width: min(96vw, 960px);
+      height: auto;
+      background: linear-gradient(180deg, #07101a, #0c1422 35%, #0a0f18);
+      border: 1px solid var(--line);
+      box-shadow:
+        0 0 30px rgba(0,255,224,.2),
+        0 0 80px rgba(255,45,149,.14),
+        inset 0 0 30px rgba(0,255,224,.04);
+    }
+
+    .hud {
+      position: absolute;
+      top: 16px; left: 16px; right: 16px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      pointer-events: none; z-index: 10;
+    }
+
+    .stat {
+      background: rgba(18,26,42,.7);
+      border: 1px solid rgba(255,255,255,.08);
+      backdrop-filter: blur(6px);
+      border-radius: 12px;
+      padding: 10px 14px;
+      min-width: 96px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,.25);
+    }
+
+    .label {
+      color: var(--accent);
+      opacity: .8;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.6px;
+    }
+
+    .value {
+      margin-top: 4px;
+      font-size: 24px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .value.high { color: var(--accent3); }
+
+    .panel {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(88vw, 430px);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 26px 20px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,.45);
+      z-index: 20;
+      transition: opacity .22s ease, visibility .22s ease;
+    }
+
+    .panel.hidden {
+      opacity: 0; visibility: hidden; pointer-events: none;
+    }
+
+    h1 {
+      font-size: clamp(34px, 7vw, 54px);
+      font-weight: 800;
+      letter-spacing: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .sub {
+      color: var(--accent2);
+      letter-spacing: 1.6px;
+      font-size: 12px;
+      opacity: .9;
+      margin-bottom: 22px;
+      text-transform: uppercase;
+    }
+
+    button {
+      appearance: none; border: none;
+      width: 100%;
+      background: linear-gradient(135deg, #101827, #1b2439);
+      color: var(--fg);
+      font: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 14px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      border: 1px solid rgba(0,255,224,.2);
+      transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease;
+      box-shadow: 0 10px 25px rgba(0,255,224,.08);
+      margin-top: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      border-color: rgba(0,255,224,.45);
+      box-shadow: 0 12px 30px rgba(0,255,224,.18);
+    }
+
+    button.secondary {
+      background: transparent;
+      border-color: rgba(255,255,255,.08);
+      color: var(--accent);
+    }
+
+    .panel-small {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .score-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+      text-align: left;
+    }
+
+    .score-row {
+      background: rgba(18,26,42,.7);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .score-top {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: rgba(0,255,224,.12);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .score-name {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .gameover-title {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      opacity: .85;
+    }
+
+    .final {
+      margin: 8px 0 18px;
+      font-size: 52px;
+      font-weight: 800;
+      color: var(--accent);
+      text-shadow: 0 0 28px rgba(0,255,224,.25);
+    }
+
+    .tiny {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 540px) {
+      .panel { width: min(90vw, 360px); }
+      .stat { min-width: 74px; padding: 8px 10px; }
+      .value { font-size: 18px; }
+    }
+  </style>
 </head>
 <body>
-<div class="hud"><div class="stat"><div class="label">Score</div><div class="value" id="score">0</div></div><div class="stat"><div class="label">Level</div><div class="value" id="level">1</div></div><div class="stat"><div class="label">Boss HP</div><div class="value" id="bossHp">—</div></div><div class="stat"><div class="label">Coins</div><div class="value gold" id="coinHud">0</div></div></div>
-<div class="alert" id="alert">⚠ THE ABSORBER IS HERE! ⚠</div>
-<section class="panel" id="startPanel"><h1>NEON DRIFT</h1><div class="sub">Dodge · Shoot · Evolve</div><p class="tiny">Coins: <b class="gold" id="menuCoins">0</b><br>Survive, destroy enemies, and buy permanent upgrades.</p><button id="startBtn">Start game</button><button class="secondary" id="shopBtn">Upgrade shop</button><button class="secondary" id="leaderBtn">Global scores</button><button class="secondary" id="howBtn">How to play & abilities</button></section>
-<section class="panel hidden" id="shopPanel"><h2>UPGRADE SHOP</h2><p class="tiny">Coins: <b class="gold" id="shopCoins">0</b><br>Shop upgrades are permanent and apply to future runs.</p><div class="shop-list" id="shopList"></div><button class="secondary" id="backBtn">Back to menu</button></section>
-<section class="panel hidden" id="leaderboardPanel"><h2>TOP SCORES</h2><p class="tiny">Your device scores and the global leaderboard. Global needs Supabase keys to be configured.</p><div class="score-list" id="leaderboardList"></div><button class="secondary" id="leaderBackBtn">Back to menu</button></section>
-<section class="panel hidden" id="helpPanel"><h2>HOW TO PLAY</h2><div class="guide"><h3>Controls</h3><ul><li>Move: WASD or arrow keys.</li><li>Shoot: hold Space. On touchscreens, touch/drag on the game to move and fire.</li><li>Aim by moving; shots travel upward.</li></ul><h3>Enemies and endless levels</h3><ul><li>Avoid colliding with neon rings and enemy shots. Orange rings shoot at you.</li><li>Survive and destroy enemies to earn coins. A boss arrives every 100 points.</li><li>The huge boss pulls you toward it and fires spreads of fireballs. Keep moving and shoot its core.</li><li>Defeat the boss to clear the level, earn bonus coins, and choose one ability card. The next level is harder; levels continue endlessly.</li></ul><h3>Ability cards (for this run)</h3><ul><li><b>Rapid Fire:</b> shorter delay between shots.</li><li><b>Triple Shot:</b> adds two angled bolts to each shot.</li><li><b>Extra Shield:</b> blocks one collision or projectile hit.</li><li><b>Turbo Engine:</b> increases movement speed and reduces the boss's pull.</li></ul><h3>Permanent shop upgrades</h3><ul><li><b>Rapid Fire:</b> start every run with a faster firing rate.</li><li><b>Double Shot:</b> start with a wider multi-shot spread.</li><li><b>Starting Shield:</b> begin each run with extra protection.</li><li><b>Improved Engine:</b> start faster and resist the boss's pull.</li></ul><p>Coins and shop purchases are saved in this browser on this device. Global scores can be enabled with Supabase credentials.</p></div><button class="secondary" id="helpBackBtn">Back to menu</button></section>
-<section class="panel hidden" id="cardsPanel"><h2>LEVEL CLEARED!</h2><p class="tiny">Choose one ability for this run.</p><div class="card-list" id="cardList"></div></section>
-<section class="panel hidden" id="overPanel"><div class="sub">Run over</div><div class="final" id="finalScore">0</div><p class="tiny" id="finalLevel"></p><button id="restartBtn">Play again</button><button class="secondary" id="menuBtn">Main menu</button></section>
-<canvas id="game" width="960" height="540" aria-label="Neon Drift game"></canvas><div class="hint">MOVE: WASD / ARROWS · SHOOT: SPACE · TOUCH: DRAG TO MOVE AND FIRE</div>
-<script>
-const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),$=id=>document.getElementById(id);
-const ui={score:$('score'),level:$('level'),bossHp:$('bossHp'),coinHud:$('coinHud'),menuCoins:$('menuCoins'),shopCoins:$('shopCoins'),start:$('startPanel'),shop:$('shopPanel'),help:$('helpPanel'),cards:$('cardsPanel'),over:$('overPanel'),final:$('finalScore'),finalLevel:$('finalLevel'),cardList:$('cardList'),shopList:$('shopList'),leader:$('leaderboardPanel'),leaderboardList:$('leaderboardList'),alert:$('alert')};
-const SUPABASE_URL='';
-const SUPABASE_ANON_KEY='';
-function read(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}}
-const wallet={coins:read('neonDriftCoins',0),upgrades:{rapid:0,multi:0,shield:0,engine:0,...read('neonDriftShop',{})}};
-const state={running:false,score:0,level:1,time:0,shotCooldown:0,fireRate:11,multi:1,shield:0,moveBoost:1,coinsRun:0};
-const player={x:480,y:420,r:13,vx:0,vy:0,maxSpeed:4.7},rings=[],stars=[],shots=[],enemyShots=[],keys={};let boss=null,touchX=null,alertTimer=0;
-const shopItems=[{id:'rapid',name:'Rapid Fire',desc:'Increases your firing rate.',base:20,max:5},{id:'multi',name:'Double Shot',desc:'Adds two angled shots to each volley.',base:35,max:2},{id:'shield',name:'Starting Shield',desc:'Start each run with another hit blocked.',base:30,max:3},{id:'engine',name:'Improved Engine',desc:'Move faster and resist the boss pull.',base:25,max:4}];
-function updateCoins(){ui.coinHud.textContent=wallet.coins;ui.menuCoins.textContent=wallet.coins;ui.shopCoins.textContent=wallet.coins}
-function saveWallet(){localStorage.setItem('neonDriftCoins',String(wallet.coins));localStorage.setItem('neonDriftShop',JSON.stringify(wallet.upgrades));updateCoins()}
-function reward(amount){wallet.coins+=amount;state.coinsRun+=amount;saveWallet()}
-function price(item){return item.base*(wallet.upgrades[item.id]+1)}
-function renderShop(){ui.shopList.innerHTML='';for(const item of shopItems){const level=wallet.upgrades[item.id]||0,card=document.createElement('div');card.className='shop-item';const title=document.createElement('strong');title.textContent=`${item.name} · Level ${level}/${item.max}`;const desc=document.createElement('span');desc.textContent=item.desc;const buy=document.createElement('button');buy.textContent=level>=item.max?'MAX LEVEL':`Buy · ${price(item)} coins`;buy.disabled=level>=item.max||wallet.coins<price(item);buy.addEventListener('click',()=>{if(wallet.coins<price(item)||level>=item.max)return;wallet.coins-=price(item);wallet.upgrades[item.id]=level+1;saveWallet();renderShop()});card.append(title,desc,buy);ui.shopList.appendChild(card)}updateCoins()}
-function loadDeviceScores(){try{const raw=localStorage.getItem('neonDriftLocalScores');const arr=raw?JSON.parse(raw):[];return Array.isArray(arr)?arr:[]}catch{return[]}}
-function saveDeviceScore(score,level){const arr=loadDeviceScores();arr.push({score,level,date:new Date().toLocaleDateString()});arr.sort((a,b)=>b.score-a.score);localStorage.setItem('neonDriftLocalScores',JSON.stringify(arr.slice(0,10)))}
-function renderLeaderboard(){const localScores=loadDeviceScores();ui.leaderboardList.innerHTML='';if(localScores.length===0){const empty=document.createElement('div');empty.className='score-row';empty.innerHTML='<strong>Local board</strong><span>No saved scores yet — play a round to create one.</span>';ui.leaderboardList.appendChild(empty)}else{localScores.slice(0,5).forEach((entry,index)=>{const row=document.createElement('div');row.className='score-row';row.innerHTML=`<div class="rank-line"><span class="rank-label">${index+1}</span><strong>${entry.score} pts</strong></div><span>Level ${entry.level} · ${entry.date}</span>`;ui.leaderboardList.appendChild(row)})}
-const globalBlock=document.createElement('div');globalBlock.className='score-row';if(!SUPABASE_URL||!SUPABASE_ANON_KEY){globalBlock.innerHTML='<strong>Global leaderboard</strong><span>Not configured yet. Add your Supabase URL + anon key to enable a global board.</span>'}else{globalBlock.innerHTML='<strong>Global leaderboard</strong><span>Loading…</span>';fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=player,score,level&order=score.desc&limit=10`,{headers:{apikey:SUPABASE_ANON_KEY,'Authorization':`Bearer ${SUPABASE_ANON_KEY}`}}).then(r=>r.ok?r.json():[]).then(rows=>{if(!rows||rows.length===0){globalBlock.innerHTML='<strong>Global leaderboard</strong><span>No global scores yet.</span>'}else{const html=rows.slice(0,5).map((row,index)=>`<div class="rank-line"><span class="rank-label">${index+1}</span><strong>${row.score} pts</strong></div><span>${row.player||'Player'} · level ${row.level}</span>`).join('');globalBlock.innerHTML=`<strong>Global leaderboard</strong>${html}`}}).catch(()=>{globalBlock.innerHTML='<strong>Global leaderboard</strong><span>Connection failed. Verify your Supabase URL and key.</span>'})}ui.leaderboardList.appendChild(globalBlock)}
-function makeRing(i){const shooter=i%3===0;return{x:Math.random()*780+90,y:Math.random()*330+90,r:shooter?25+Math.random()*10:25+Math.random()*34,vx:(Math.random()-.5)*2.1,vy:(Math.random()-.5)*2.1,hue:shooter?'orange':i%2?'pink':'cyan',shooter,hp:shooter?2+Math.floor(state.level/3):1,nextShot:state.time+70+Math.random()*80}}
-function initStars(){for(let i=0;i<100;i++)stars.push({x:Math.random()*960,y:Math.random()*540,r:Math.random()*2+.5,s:Math.random()+.4})}
-function resetGame(){Object.assign(state,{running:true,score:0,level:1,time:0,shotCooldown:0,fireRate:Math.max(4,11-2*wallet.upgrades.rapid),multi:1+wallet.upgrades.multi*2,shield:wallet.upgrades.shield,moveBoost:1+wallet.upgrades.engine*.12,coinsRun:0});player.maxSpeed=4.7*state.moveBoost;player.x=480;player.y=420;player.vx=player.vy=0;rings.length=shots.length=enemyShots.length=0;boss=null;touchX=null;for(let i=0;i<8;i++)rings.push(makeRing(i));ui.score.textContent='0';ui.level.textContent='1';ui.bossHp.textContent='—';ui.start.classList.add('hidden');ui.shop.classList.add('hidden');ui.help.classList.add('hidden');ui.cards.classList.add('hidden');ui.over.classList.add('hidden');ui.alert.classList.remove('show');ui.leader.classList.add('hidden')}
-function finish(){if(!state.running)return;state.running=false;saveDeviceScore(state.score,state.level);renderLeaderboard();ui.final.textContent=state.score;ui.finalLevel.textContent=`Level ${state.level} · Coins earned: ${state.coinsRun}`;ui.over.classList.remove('hidden')}
-function spawnBoss(){boss={x:480,y:115,r:78+Math.min(24,state.level*2),hp:18+state.level*7,maxHp:18+state.level*7,phase:0,nextShot:state.time+35};ui.bossHp.textContent=boss.hp;ui.alert.classList.add('show');alertTimer=150;rings.length=0}
-function shoot(){if(state.shotCooldown>0)return;for(let i=0;i<state.multi;i++){const spread=.14,off=(i-(state.multi-1)/2)*spread;shots.push({x:player.x,y:player.y-player.r,vx:Math.sin(off)*8,vy:-Math.cos(off)*8})}state.shotCooldown=state.fireRate}
-function updatePlayer(){let dx=(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0),dy=(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0);if(touchX!==null){dx=touchX<player.x-35?-1:touchX>player.x+35?1:0;dy=Math.abs(touchX-player.x)<=35?-1:0;shoot()}player.vx+=dx*.34;player.vy+=dy*.34;if(boss){const ax=boss.x-player.x,ay=boss.y-player.y,d=Math.hypot(ax,ay)||1;if(d<340){const pull=.11*(1-d/340)/state.moveBoost;player.vx+=ax/d*pull;player.vy+=ay/d*pull}}player.vx*=.88;player.vy*=.88;const m=Math.hypot(player.vx,player.vy);if(m>player.maxSpeed){player.vx=player.vx/m*player.maxSpeed;player.vy=player.vy/m*player.maxSpeed}player.x=Math.max(player.r,Math.min(960-player.r,player.x+player.vx));player.y=Math.max(player.r,Math.min(540-player.r,player.y+player.vy));if(keys[' '])shoot();if(state.shotCooldown>0)state.shotCooldown--}
-function hitPlayer(){if(state.shield>0){state.shield--;return false}finish();return true}
-function updateRings(){for(const e of rings){e.x+=e.vx;e.y+=e.vy;if(e.x<e.r||e.x>960-e.r)e.vx*=-1;if(e.y<e.r||e.y>540-e.r)e.vy*=-1;if(Math.hypot(player.x-e.x,player.y-e.y)<player.r+e.r*.48){if(hitPlayer())return}if(e.shooter&&state.time>=e.nextShot){const dx=player.x-e.x,dy=player.y-e.y,d=Math.hypot(dx,dy)||1;enemyShots.push({x:e.x,y:e.y,vx:dx/d*2.7,vy:dy/d*2.7,r:7,life:260,fire:false});e.nextShot=state.time+Math.max(45,115-state.level*3)}}}
-function clearLevel(){boss=null;state.running=false;reward(25+state.level*5);ui.bossHp.textContent='DEFEATED';showCards()}
-function showCards(){ui.cardList.innerHTML='';const choices=[{name:'Rapid Fire',desc:'Shorter delay between shots for this run.',apply(){state.fireRate=Math.max(2,state.fireRate-2)}},{name:'Triple Shot',desc:'Add two angled bolts to every shot.',apply(){state.multi=Math.min(7,state.multi+2)}},{name:'Extra Shield',desc:'Block one additional collision or projectile hit.',apply(){state.shield++}},{name:'Turbo Engine',desc:'Move faster and resist the boss pull.',apply(){state.moveBoost+=.18;player.maxSpeed=4.7*state.moveBoost}}].sort(()=>Math.random()-.5).slice(0,3);for(const card of choices){const b=document.createElement('button');b.className='ability-card';b.innerHTML=`<strong>${card.name}</strong><span>${card.desc}</span>`;b.addEventListener('click',()=>{card.apply();state.level++;state.time=0;state.running=true;ui.level.textContent=state.level;ui.cards.classList.add('hidden');ui.bossHp.textContent='—';rings.length=0;enemyShots.length=0;for(let i=0;i<7+Math.min(10,state.level);i++)rings.push(makeRing(i))});ui.cardList.appendChild(b)}ui.cards.classList.remove('hidden')}
-function updateShots(){for(let i=shots.length-1;i>=0;i--){const b=shots[i];b.x+=b.vx;b.y+=b.vy;let remove=b.y<-10||b.x<0||b.x>960;if(boss&&Math.hypot(b.x-boss.x,b.y-boss.y)<boss.r*.72){boss.hp--;ui.bossHp.textContent=boss.hp;remove=true;if(boss.hp<=0){state.score+=100;ui.score.textContent=state.score;clearLevel()}}else if(!boss){for(let j=rings.length-1;j>=0;j--){const e=rings[j];if(Math.hypot(b.x-e.x,b.y-e.y)<e.r){e.hp--;remove=true;if(e.hp<=0){rings.splice(j,1);const points=e.shooter?15:5;state.score+=points;ui.score.textContent=state.score;reward(e.shooter?4:2)}break}}}if(remove)shots.splice(i,1)}}
-function updateBoss(){if(!boss)return;boss.phase+=.035;const dx=player.x-boss.x,dy=player.y-boss.y,d=Math.hypot(dx,dy)||1;boss.x+=dx/d*.25+Math.sin(boss.phase)*.7;boss.y+=dy/d*.15+Math.cos(boss.phase*.7)*.4;boss.x=Math.max(boss.r,Math.min(960-boss.r,boss.x));boss.y=Math.max(boss.r,Math.min(310,boss.y));if(d<boss.r*.68+player.r){if(hitPlayer())return}if(state.time>=boss.nextShot){for(let n=-1;n<=1;n++){const a=Math.atan2(dy,dx)+n*.2;enemyShots.push({x:boss.x,y:boss.y,vx:Math.cos(a)*3.1,vy:Math.sin(a)*3.1,r:10,life:240,fire:true})}boss.nextShot=state.time+Math.max(35,72-state.level*2)}}
-function updateEnemyShots(){for(let i=enemyShots.length-1;i>=0;i--){const b=enemyShots[i];b.x+=b.vx;b.y+=b.vy;b.life--;if(Math.hypot(player.x-b.x,player.y-b.y)<player.r+b.r*.7){if(hitPlayer())return;enemyShots.splice(i,1);continue}if(b.life<=0||b.x<-20||b.x>980||b.y<-20||b.y>560)enemyShots.splice(i,1)}}
-function drawBackground(){ctx.clearRect(0,0,960,540);const g=ctx.createLinearGradient(0,0,0,540);g.addColorStop(0,'#070b14');g.addColorStop(.5,'#0d1522');g.addColorStop(1,'#070c16');ctx.fillStyle=g;ctx.fillRect(0,0,960,540);for(const s of stars){s.y+=s.s;if(s.y>540){s.y=-8;s.x=Math.random()*960}ctx.fillStyle='#ffffffbb';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill()}ctx.strokeStyle='#ffffff0d';for(let x=0;x<960;x+=42){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,540);ctx.stroke()}for(let y=0;y<540;y+=42){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(960,y);ctx.stroke()}}
-function drawRings(){for(const e of rings){ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.strokeStyle=e.shooter?'#ff8b38':e.hue==='pink'?'#ff2d95':'#00ffe0';ctx.lineWidth=e.shooter?5:3;ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=14;ctx.stroke();if(e.shooter){ctx.fillStyle='#ffb34e';ctx.beginPath();ctx.arc(e.x,e.y,5,0,Math.PI*2);ctx.fill()}}ctx.shadowBlur=0}
-function drawBoss(){if(!boss)return;ctx.save();ctx.shadowColor='#ff321f';ctx.shadowBlur=32;const g=ctx.createRadialGradient(boss.x,boss.y,10,boss.x,boss.y,boss.r+24);g.addColorStop(0,'#ff632b');g.addColorStop(.55,'#8e145d');g.addColorStop(1,'#32052822');ctx.fillStyle=g;ctx.beginPath();ctx.arc(boss.x,boss.y,boss.r+Math.sin(boss.phase*3)*4,0,Math.PI*2);ctx.fill();ctx.restore();ctx.strokeStyle='#ff9a54';ctx.lineWidth=5;ctx.beginPath();ctx.arc(boss.x,boss.y,boss.r,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#280d2a';ctx.beginPath();ctx.arc(boss.x,boss.y,boss.r*.62,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffcc66';ctx.shadowColor='#ff4a22';ctx.shadowBlur=18;ctx.beginPath();ctx.ellipse(boss.x,boss.y,25,34,0,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#290619';ctx.beginPath();ctx.ellipse(boss.x,boss.y+3,8,24,0,0,Math.PI*2);ctx.fill();const w=150,x=boss.x-w/2,y=boss.y-boss.r-22;ctx.fillStyle='#39152b';ctx.fillRect(x,y,w,8);ctx.fillStyle='#ff4c54';ctx.fillRect(x,y,w*boss.hp/boss.maxHp,8)}
-function drawProjectiles(){for(const b of shots){ctx.fillStyle='#c9ffff';ctx.shadowColor='#00ffe0';ctx.shadowBlur=12;ctx.fillRect(b.x-2,b.y-8,4,12)}for(const b of enemyShots){ctx.fillStyle=b.fire?'#ff4a1f':'#ffae43';ctx.shadowColor='#ff321f';ctx.shadowBlur=16;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffe789';ctx.beginPath();ctx.arc(b.x,b.y,b.r*.42,0,Math.PI*2);ctx.fill()}ctx.shadowBlur=0}
-function drawPlayer(){ctx.fillStyle=state.shield?'#aaffff':'#00ffe0';ctx.shadowColor='#00ffe0';ctx.shadowBlur=state.shield?26:16;ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#eaf6ff';ctx.beginPath();ctx.moveTo(player.x,player.y-9);ctx.lineTo(player.x+7,player.y+8);ctx.lineTo(player.x-7,player.y+8);ctx.closePath();ctx.fill();if(state.shield){ctx.strokeStyle='#aaffff99';ctx.beginPath();ctx.arc(player.x,player.y,player.r+7,0,Math.PI*2);ctx.stroke()}}
-function render(){drawBackground();drawRings();drawBoss();drawProjectiles();drawPlayer();if(alertTimer>0&&--alertTimer===0)ui.alert.classList.remove('show')}
-function tick(){if(state.running){state.time++;updatePlayer();if(boss)updateBoss();else updateRings();updateShots();updateEnemyShots();if(state.time%5===0){state.score++;ui.score.textContent=state.score;if(state.score%50===0)reward(1);if(!boss&&state.score>0&&state.score%100===0)spawnBoss()}}render();requestAnimationFrame(tick)}
-$('startBtn').addEventListener('click',resetGame);$('restartBtn').addEventListener('click',resetGame);$('menuBtn').addEventListener('click',()=>{ui.over.classList.add('hidden');ui.start.classList.remove('hidden');updateCoins()});$('shopBtn').addEventListener('click',()=>{renderShop();ui.start.classList.add('hidden');ui.shop.classList.remove('hidden')});$('backBtn').addEventListener('click',()=>{ui.shop.classList.add('hidden');ui.start.classList.remove('hidden')});$('howBtn').addEventListener('click',()=>{ui.start.classList.add('hidden');ui.help.classList.remove('hidden')});$('helpBackBtn').addEventListener('click',()=>{ui.help.classList.add('hidden');ui.start.classList.remove('hidden')});$('leaderBtn').addEventListener('click',()=>{renderLeaderboard();ui.start.classList.add('hidden');ui.leader.classList.remove('hidden')});$('leaderBackBtn').addEventListener('click',()=>{ui.leader.classList.add('hidden');ui.start.classList.remove('hidden')});document.addEventListener('keydown',e=>{keys[e.key]=true;keys[e.key.toLowerCase()]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();if((e.key==='Enter'||e.key===' ')&&!state.running&&!ui.start.classList.contains('hidden'))resetGame()});document.addEventListener('keyup',e=>{keys[e.key]=false;keys[e.key.toLowerCase()]=false});canvas.addEventListener('pointerdown',e=>{touchX=(e.clientX-canvas.getBoundingClientRect().left)/canvas.getBoundingClientRect().width*960;shoot()});canvas.addEventListener('pointermove',e=>{if(e.buttons)touchX=(e.clientX-canvas.getBoundingClientRect().left)/canvas.getBoundingClientRect().width*960});window.addEventListener('pointerup',()=>touchX=null);updateCoins();initStars();renderLeaderboard();requestAnimationFrame(tick);
-</script>
+  <div class="hud">
+    <div class="stat">
+      <div class="label">Score</div>
+      <div class="value" id="scoreValue">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">Best</div>
+      <div class="value high" id="bestValue">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">Speed</div>
+      <div class="value" id="speedValue">1.0x</div>
+    </div>
+  </div>
+
+  <div class="panel" id="startPanel">
+    <h1>NEON DRIFT</h1>
+    <div class="sub">Dodge the grid / Stay alive</div>
+    <button id="startBtn">Start Run</button>
+    <button class="secondary" id="scoresBtn">Top Scores</button>
+    <button class="secondary" id="howBtn">How to Play</button>
+  </div>
+
+  <div class="panel hidden" id="scoresPanel">
+    <div class="sub">Top Scores</div>
+    <div class="score-list" id="scoreList"></div>
+    <div class="tiny">Local scores are saved in this browser. Global scores are enabled when you add your Supabase URL and anon key.</div>
+    <button class="secondary" id="scoresBackBtn">Back</button>
+  </div>
+
+  <div class="panel hidden" id="howPanel">
+    <div class="sub">How to Play</div>
+    <div class="panel-small">
+      Use WASD or arrow keys to steer. Avoid the neon rings. Survive as long as possible and keep your best score rising.
+    </div>
+    <button class="secondary" id="howBackBtn">Back</button>
+  </div>
+
+  <div class="panel hidden" id="gameOverPanel">
+    <div class="gameover-title">Run Complete</div>
+    <div class="final" id="finalScore">0</div>
+    <button id="restartBtn">Play Again</button>
+    <button class="secondary" id="menuBtn">Main Menu</button>
+  </div>
+
+  <canvas id="game" width="960" height="540"></canvas>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    const scoreValue = document.getElementById('scoreValue');
+    const bestValue = document.getElementById('bestValue');
+    const speedValue = document.getElementById('speedValue');
+    const finalScore = document.getElementById('finalScore');
+    const startPanel = document.getElementById('startPanel');
+    const scoresPanel = document.getElementById('scoresPanel');
+    const howPanel = document.getElementById('howPanel');
+    const gameOverPanel = document.getElementById('gameOverPanel');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const howBtn = document.getElementById('howBtn');
+    const scoresBtn = document.getElementById('scoresBtn');
+    const menuBtn = document.getElementById('menuBtn');
+    const scoresBackBtn = document.getElementById('scoresBackBtn');
+    const howBackBtn = document.getElementById('howBackBtn');
+    const scoreList = document.getElementById('scoreList');
+
+    const SUPABASE = {
+      url: 'https://YOUR_PROJECT_URL.supabase.co',
+      anonKey: 'YOUR_PUBLIC_ANON_KEY'
+    };
+
+    function isSupabaseReady() {
+      return SUPABASE.url && SUPABASE.url.includes('supabase.co') && SUPABASE.anonKey && SUPABASE.anonKey !== 'YOUR_PUBLIC_ANON_KEY';
+    }
+
+    function readScores() {
+      try {
+        const raw = localStorage.getItem('neonDriftScores');
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      } catch (err) {
+        return [];
+      }
+    }
+
+    function writeScores(arr) {
+      localStorage.setItem('neonDriftScores', JSON.stringify(arr.slice(0, 10)));
+    }
+
+    function saveLocalScore(value) {
+      const arr = readScores();
+      arr.push({ score: value, date: new Date().toLocaleDateString() });
+      arr.sort((a, b) => b.score - a.score);
+      writeScores(arr);
+    }
+
+    async function saveGlobalScore(value) {
+      if (!isSupabaseReady()) return;
+
+      try {
+        await fetch(`${SUPABASE.url}/rest/v1/leaderboard`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE.anonKey,
+            'Authorization': `Bearer ${SUPABASE.anonKey}`
+          },
+          body: JSON.stringify({
+            player: 'Player',
+            score: value,
+            level: 1,
+            created_at: new Date().toISOString()
+          })
+        });
+      } catch (err) {
+        console.warn('Supabase save failed:', err);
+      }
+    }
+
+    async function loadLeaderboard() {
+      const arr = readScores();
+      scoreList.innerHTML = '';
+
+      if (arr.length === 0) {
+        scoreList.innerHTML = '<div class="score-row"><div class="score-top"><span class="rank">★</span><strong>Local</strong></div><div class="score-name">No scores yet. Start a run to create one.</div></div>';
+      } else {
+        arr.slice(0, 5).forEach((entry, index) => {
+          const row = document.createElement('div');
+          row.className = 'score-row';
+          row.innerHTML = `
+            <div class="score-top">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="rank">${index + 1}</span>
+                <strong>${entry.score}</strong>
+              </div>
+              <span class="score-name">${entry.date}</span>
+            </div>
+          `;
+          scoreList.appendChild(row);
+        });
+      }
+
+      if (isSupabaseReady()) {
+        try {
+          const resp = await fetch(`${SUPABASE.url}/rest/v1/leaderboard?select=player,score,created_at&order=score.desc&limit=5`, {
+            headers: {
+              'apikey': SUPABASE.anonKey,
+              'Authorization': `Bearer ${SUPABASE.anonKey}`
+            }
+          });
+
+          if (!resp.ok) throw new Error('Global leaderboard failed');
+
+          const rows = await resp.json();
+          if (rows && rows.length) {
+            const globalWrap = document.createElement('div');
+            globalWrap.className = 'score-row';
+            globalWrap.innerHTML = '<div class="score-top"><span class="rank">G</span><strong>Global</strong></div>';
+
+            rows.forEach((row, index) => {
+              const item = document.createElement('div');
+              item.className = 'score-name';
+              item.textContent = `${index + 1}. ${row.player || 'Player'} — ${row.score}`;
+              globalWrap.appendChild(item);
+            });
+
+            scoreList.appendChild(globalWrap);
+          }
+        } catch (err) {
+          const note = document.createElement('div');
+          note.className = 'score-row';
+          note.innerHTML = '<div class="score-top"><span class="rank">!</span><strong>Global</strong></div><div class="score-name">Connection check failed. Verify your Supabase URL and anon key.</div>';
+          scoreList.appendChild(note);
+        }
+      }
+    }
+
+    const state = {
+      running: false,
+      gameOver: false,
+      score: 0,
+      best: Number(localStorage.getItem('neonDriftBest') || 0),
+      speed: 1,
+      time: 0,
+    };
+
+    const player = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      r: 18,
+      vx: 0,
+      vy: 0,
+      maxSpeed: 4.6
+    };
+
+    const rings = [];
+    const stars = [];
+    const keys = {};
+
+    function initStars() {
+      stars.length = 0;
+      for (let i = 0; i < 100; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 2.2 + 0.8,
+          speed: Math.random() * 1.2 + 0.4
+        });
+      }
+    }
+
+    function resetGame() {
+      state.running = true;
+      state.gameOver = false;
+      state.score = 0;
+      state.speed = 1;
+      state.time = 0;
+
+      player.x = canvas.width / 2;
+      player.y = canvas.height / 2;
+      player.vx = 0;
+      player.vy = 0;
+
+      rings.length = 0;
+      for (let i = 0; i < 8; i++) {
+        rings.push({
+          x: Math.random() * (canvas.width - 120) + 60,
+          y: Math.random() * (canvas.height - 120) + 60,
+          r: 26 + Math.random() * 42,
+          vx: (Math.random() - 0.5) * 2.2,
+          vy: (Math.random() - 0.5) * 2.2,
+          hue: i % 2 === 0 ? 'cyan' : 'pink'
+        });
+      }
+
+      scoreValue.textContent = '0';
+      speedValue.textContent = '1.0x';
+      finalScore.textContent = '0';
+      startPanel.classList.add('hidden');
+      scoresPanel.classList.add('hidden');
+      howPanel.classList.add('hidden');
+      gameOverPanel.classList.add('hidden');
+    }
+
+    function endGame() {
+      state.running = false;
+      state.gameOver = true;
+      finalScore.textContent = state.score;
+      gameOverPanel.classList.remove('hidden');
+
+      if (state.score > state.best) {
+        state.best = state.score;
+        localStorage.setItem('neonDriftBest', String(state.best));
+      }
+
+      bestValue.textContent = state.best;
+      saveLocalScore(state.score);
+      saveGlobalScore(state.score);
+      loadLeaderboard();
+    }
+
+    function updatePlayer() {
+      const dx = (keys['ArrowRight'] || keys['d'] ? 1 : 0) - (keys['ArrowLeft'] || keys['a'] ? 1 : 0);
+      const dy = (keys['ArrowDown'] || keys['s'] ? 1 : 0) - (keys['ArrowUp'] || keys['w'] ? 1 : 0);
+
+      player.vx += dx * 0.34;
+      player.vy += dy * 0.34;
+
+      player.vx *= 0.88;
+      player.vy *= 0.88;
+
+      const mag = Math.hypot(player.vx, player.vy);
+      if (mag > player.maxSpeed) {
+        player.vx = (player.vx / mag) * player.maxSpeed;
+        player.vy = (player.vy / mag) * player.maxSpeed;
+      }
+
+      player.x += player.vx;
+      player.y += player.vy;
+
+      if (player.x < player.r) player.x = player.r;
+      if (player.x > canvas.width - player.r) player.x = canvas.width - player.r;
+      if (player.y < player.r) player.y = player.r;
+      if (player.y > canvas.height - player.r) player.y = canvas.height - player.r;
+    }
+
+    function updateRings() {
+      for (const ring of rings) {
+        ring.x += ring.vx * state.speed;
+        ring.y += ring.vy * state.speed;
+
+        if (ring.x < 30 || ring.x > canvas.width - 30) ring.vx *= -1;
+        if (ring.y < 30 || ring.y > canvas.height - 30) ring.vy *= -1;
+
+        const dist = Math.hypot(player.x - ring.x, player.y - ring.y);
+        if (dist < player.r + ring.r * 0.6) {
+          endGame();
+        }
+      }
+    }
+
+    function updateScore() {
+      state.score += 1;
+      state.speed = 1 + state.score / 500;
+      scoreValue.textContent = state.score;
+      speedValue.textContent = `${state.speed.toFixed(1)}x`;
+      if (state.score > state.best) {
+        bestValue.textContent = state.score;
+      }
+    }
+
+    function drawBackground() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      const grad = ctx.createLinearGradient(0,0,0,canvas.height);
+      grad.addColorStop(0,'#070b14');
+      grad.addColorStop(0.5,'#0d1522');
+      grad.addColorStop(1,'#070c16');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      for (const star of stars) {
+        star.y += star.speed;
+        if (star.y > canvas.height) {
+          star.y = -10;
+          star.x = Math.random()*canvas.width;
+        }
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI*2);
+        ctx.fill();
+      }
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 42) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 42) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+    }
+
+    function drawRings() {
+      for (const ring of rings) {
+        ctx.beginPath();
+        ctx.arc(ring.x, ring.y, ring.r, 0, Math.PI*2);
+
+        ctx.strokeStyle = ring.hue === 'cyan'
+          ? 'rgba(0,255,224,0.9)'
+          : 'rgba(255,45,149,0.8)';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = ring.hue === 'cyan' ? '#00ffe0' : '#ff2d95';
+        ctx.shadowBlur = 20;
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    function drawPlayer() {
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.r, 0, Math.PI*2);
+      ctx.fillStyle = '#00ffe0';
+      ctx.shadowColor = '#00ffe0';
+      ctx.shadowBlur = 18;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.beginPath();
+      ctx.moveTo(player.x, player.y - 10);
+      ctx.lineTo(player.x + 8, player.y + 12);
+      ctx.lineTo(player.x - 8, player.y + 12);
+      ctx.closePath();
+      ctx.fillStyle = '#eaf6ff';
+      ctx.fill();
+    }
+
+    function drawCenterAxis() {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.beginPath();
+      ctx.moveTo(cx, 0);
+      ctx.lineTo(cx, canvas.height);
+      ctx.moveTo(0, cy);
+      ctx.lineTo(canvas.width, cy);
+      ctx.stroke();
+    }
+
+    function render() {
+      drawBackground();
+      drawCenterAxis();
+      drawRings();
+      drawPlayer();
+    }
+
+    function tick() {
+      if (state.running) {
+        state.time++;
+        updatePlayer();
+        updateRings();
+        if (state.time % 5 === 0) updateScore();
+      }
+      render();
+      requestAnimationFrame(tick);
+    }
+
+    startBtn.addEventListener('click', resetGame);
+    restartBtn.addEventListener('click', resetGame);
+    menuBtn.addEventListener('click', () => {
+      gameOverPanel.classList.add('hidden');
+      startPanel.classList.remove('hidden');
+    });
+
+    scoresBtn.addEventListener('click', async () => {
+      startPanel.classList.add('hidden');
+      await loadLeaderboard();
+      scoresPanel.classList.remove('hidden');
+    });
+
+    scoresBackBtn.addEventListener('click', () => {
+      scoresPanel.classList.add('hidden');
+      startPanel.classList.remove('hidden');
+    });
+
+    howBtn.addEventListener('click', () => {
+      startPanel.classList.add('hidden');
+      howPanel.classList.remove('hidden');
+    });
+
+    howBackBtn.addEventListener('click', () => {
+      howPanel.classList.add('hidden');
+      startPanel.classList.remove('hidden');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      keys[e.key] = true;
+      keys[e.key.toLowerCase()] = true;
+      if ((e.key === 'Enter' || e.key === ' ') && !state.running) {
+        resetGame();
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      keys[e.key] = false;
+      keys[e.key.toLowerCase()] = false;
+    });
+
+    bestValue.textContent = state.best;
+    initStars();
+    loadLeaderboard();
+    render();
+    tick();
+  </script>
 </body>
 </html>
