@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Neon Drift</title>
+  <style>
+    :root {
+      --bg: #0a0a12;
+      --fg: #e8e8f0;
+      --accent: #00ffe0;
+      --accent2: #ff2d95;
+      --accent3: #ffcc00;
+      --dim: #2a2a3a;
+      --card: #12121e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    #gameCanvas {
+      display: block;
+      box-shadow: 0 0 60px -10px #00ffe044, 0 0 100px -20px #ff2d9544;
+    }
+
+    .ui { position: absolute; pointer-events: none; z-index: 10; }
+
+    #hud {
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--dim);
+      padding: 8px 14px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 90px;
+      box-shadow: 0 4px 20px -4px #00000088;
+    }
+
+    .stat .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      opacity: 0.7;
+    }
+
+    .stat .value {
+      font-size: 22px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat .value.high { color: var(--accent3); }
+
+    #menu {
+      pointer-events: auto;
+      text-align: center;
+      max-width: 320px;
+    }
+
+    #menu h1 {
+      font-size: clamp(28px, 8vw, 48px);
+      font-weight: 800;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    #menu .tagline {
+      color: var(--accent2);
+      font-size: 13px;
+      margin-bottom: 28px;
+      opacity: 0.85;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      background: linear-gradient(135deg, var(--card), var(--dim));
+      color: var(--fg);
+      padding: 14px 36px;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform .1s, box-shadow .2s, border-color .2s;
+      border: 1px solid transparent;
+      width: 100%;
+      max-width: 280px;
+      margin: 10px auto;
+      display: block;
+    }
+
+    .btn:hover, .btn:focus {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px -6px var(--accent)88;
+      border-color: var(--accent)66;
+      outline: none;
+    }
+
+    .btn:active { transform: translateY(0); }
+
+    .btn.secondary {
+      background: transparent;
+      border-color: var(--dim);
+      color: var(--accent);
+    }
+
+    .btn.secondary:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 30px -6px var(--accent)44;
+    }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: #0a0a12ee;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s;
+    }
+
+    #overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #overlayContent {
+      text-align: center;
+      transform: scale(0.95);
+      transition: transform .3s;
+    }
+
+    #overlay.show #overlayContent { transform: scale(1); }
+
+    #finalScore {
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .small {
+      opacity: 0.8;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent2);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="960" height="540"></canvas>
+
+  <div class="ui" id="hud">
+    <div class="stat">
+      <div class="label">Score</div>
+      <div class="value" id="scoreValue">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">Best</div>
+      <div class="value high" id="bestValue">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">Speed</div>
+      <div class="value" id="speedValue">1.0x</div>
+    </div>
+  </div>
+
+  <div class="ui" id="menu">
+    <h1>NEON DRIFT</h1>
+    <div class="tagline">DODGE THE GRID / STAY IN THE ZONE</div>
+    <button class="btn" id="startBtn">Start Run</button>
+    <button class="btn secondary" id="toggleBtn">How to Play</button>
+  </div>
+
+  <div id="overlay" aria-live="polite">
+    <div id="overlayContent">
+      <div class="small">Run Complete</div>
+      <div id="finalScore">0</div>
+      <button class="btn" id="restartBtn">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreValue = document.getElementById('scoreValue');
+    const bestValue = document.getElementById('bestValue');
+    const speedValue = document.getElementById('speedValue');
+    const finalScore = document.getElementById('finalScore');
+    const overlay = document.getElementById('overlay');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const menu = document.getElementById('menu');
+
+    let started = false;
+    let gameOver = false;
+    let score = 0;
+    let best = Number(localStorage.getItem('neonDriftBest') || 0);
+    let speed = 1;
+
+    bestValue.textContent = best;
+
+    function resetGame() {
+      score = 0;
+      speed = 1;
+      gameOver = false;
+      finalScore.textContent = '0';
+      scoreValue.textContent = '0';
+      speedValue.textContent = '1.0x';
+      overlay.classList.remove('show');
+      menu.style.display = 'none';
+      started = true;
+    }
+
+    function endGame() {
+      gameOver = true;
+      started = false;
+      finalScore.textContent = score;
+      overlay.classList.add('show');
+      if (score > best) {
+        best = score;
+        localStorage.setItem('neonDriftBest', String(best));
+        bestValue.textContent = best;
+      }
+    }
+
+    function loop() {
+      if (!started) {
+        drawMenuScene();
+      } else {
+        update();
+        draw();
+      }
+      requestAnimationFrame(loop);
+    }
+
+    function update() {
+      score += 1;
+      speed = 1 + score / 400;
+      scoreValue.textContent = score;
+      speedValue.textContent = `${speed.toFixed(1)}x`;
+      if (score > best) bestValue.textContent = score;
+      if (score > 900) endGame();
+    }
+
+    function drawMenuScene() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      g.addColorStop(0, '#0a0a12');
+      g.addColorStop(1, '#111827');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = 'rgba(0,255,224,0.18)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < canvas.width; i += 38) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+      }
+      for (let i = 0; i < canvas.height; i += 38) {
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(canvas.width, i);
+        ctx.stroke();
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      g.addColorStop(0, '#0a0a12');
+      g.addColorStop(1, '#090b16');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < canvas.width; i += 42) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+      }
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const pulse = Math.sin(score * 0.12) * 16;
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 120 + pulse, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0,255,224,0.9)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(centerX - 160, centerY);
+      ctx.lineTo(centerX + 160, centerY);
+      ctx.moveTo(centerX, centerY - 110);
+      ctx.lineTo(centerX, centerY + 110);
+      ctx.strokeStyle = 'rgba(255,45,149,0.7)';
+      ctx.stroke();
+
+      ctx.fillStyle = '#00ffe0';
+      ctx.fillRect(centerX - 18, centerY - 18, 36, 36);
+    }
+
+    startBtn.addEventListener('click', () => resetGame());
+    restartBtn.addEventListener('click', () => resetGame());
+    toggleBtn.addEventListener('click', () => {
+      alert('Move with arrow keys or A/D. Stay inside the drift ring and survive as long as possible.');
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (!started && (event.key === 'Enter' || event.key === ' ')) {
+        resetGame();
+      }
+    });
+
+    drawMenuScene();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
