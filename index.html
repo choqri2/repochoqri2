@@ -1,689 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Neon Drift</title>
   <style>
-    :root {
-      --bg: #070b14;
-      --bg2: #101827;
-      --fg: #eaf6ff;
-      --accent: #00ffe0;
-      --accent2: #ff2d95;
-      --accent3: #ffd166;
-      --panel: rgba(10,15,26,.88);
-      --line: rgba(255,255,255,.1);
-      --muted: rgba(218,232,255,.82);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html, body {
-      width: 100%; height: 100%;
-      font-family: 'JetBrains Mono', 'Fira Code', monospace;
-      background: radial-gradient(circle at top, #0e1320 0%, var(--bg) 55%);
-      color: var(--fg);
-      overflow: hidden;
-    }
-
-    body {
-      display: flex; align-items: center; justify-content: center;
-      user-select: none; -webkit-user-select: none;
-      touch-action: none;
-    }
-
-    canvas {
-      display: block;
-      width: min(96vw, 960px);
-      height: auto;
-      background: linear-gradient(180deg, #07101a, #0c1422 35%, #0a0f18);
-      border: 1px solid var(--line);
-      box-shadow:
-        0 0 30px rgba(0,255,224,.2),
-        0 0 80px rgba(255,45,149,.14),
-        inset 0 0 30px rgba(0,255,224,.04);
-    }
-
-    .hud {
-      position: absolute;
-      top: 16px; left: 16px; right: 16px;
-      display: flex; justify-content: space-between; align-items: flex-start;
-      pointer-events: none; z-index: 10;
-    }
-
-    .stat {
-      background: rgba(18,26,42,.7);
-      border: 1px solid rgba(255,255,255,.08);
-      backdrop-filter: blur(6px);
-      border-radius: 12px;
-      padding: 10px 14px;
-      min-width: 96px;
-      text-align: center;
-      box-shadow: 0 8px 20px rgba(0,0,0,.25);
-    }
-
-    .label {
-      color: var(--accent);
-      opacity: .8;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1.6px;
-    }
-
-    .value {
-      margin-top: 4px;
-      font-size: 24px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .value.high { color: var(--accent3); }
-
-    .panel {
-      position: absolute;
-      left: 50%; top: 50%;
-      transform: translate(-50%, -50%);
-      width: min(88vw, 430px);
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 26px 20px;
-      text-align: center;
-      box-shadow: 0 20px 50px rgba(0,0,0,.45);
-      z-index: 20;
-      transition: opacity .22s ease, visibility .22s ease;
-    }
-
-    .panel.hidden {
-      opacity: 0; visibility: hidden; pointer-events: none;
-    }
-
-    h1 {
-      font-size: clamp(34px, 7vw, 54px);
-      font-weight: 800;
-      letter-spacing: 3px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      margin-bottom: 8px;
-    }
-
-    .sub {
-      color: var(--accent2);
-      letter-spacing: 1.6px;
-      font-size: 12px;
-      opacity: .9;
-      margin-bottom: 22px;
-      text-transform: uppercase;
-    }
-
-    button {
-      appearance: none; border: none;
-      width: 100%;
-      background: linear-gradient(135deg, #101827, #1b2439);
-      color: var(--fg);
-      font: inherit;
-      font-size: 16px;
-      font-weight: 700;
-      padding: 14px 18px;
-      border-radius: 12px;
-      cursor: pointer;
-      border: 1px solid rgba(0,255,224,.2);
-      transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease;
-      box-shadow: 0 10px 25px rgba(0,255,224,.08);
-      margin-top: 10px;
-    }
-
-    button:hover {
-      transform: translateY(-2px);
-      border-color: rgba(0,255,224,.45);
-      box-shadow: 0 12px 30px rgba(0,255,224,.18);
-    }
-
-    button.secondary {
-      background: transparent;
-      border-color: rgba(255,255,255,.08);
-      color: var(--accent);
-    }
-
-    .panel-small {
-      margin-top: 12px;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .score-list {
-      display: grid;
-      gap: 10px;
-      margin-top: 14px;
-      text-align: left;
-    }
-
-    .score-row {
-      background: rgba(18,26,42,.7);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 12px;
-      padding: 10px 12px;
-    }
-
-    .score-top {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 4px;
-    }
-
-    .rank {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      background: rgba(0,255,224,.12);
-      color: var(--accent);
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    .score-name {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .gameover-title {
-      font-size: 12px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--accent2);
-      opacity: .85;
-    }
-
-    .final {
-      margin: 8px 0 18px;
-      font-size: 52px;
-      font-weight: 800;
-      color: var(--accent);
-      text-shadow: 0 0 28px rgba(0,255,224,.25);
-    }
-
-    .tiny {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.6;
-      margin-top: 10px;
-    }
-
-    @media (max-width: 540px) {
-      .panel { width: min(90vw, 360px); }
-      .stat { min-width: 74px; padding: 8px 10px; }
-      .value { font-size: 18px; }
-    }
+    :root{--bg:#070b14;--fg:#eaf6ff;--cyan:#00ffe0;--pink:#ff2d95;--gold:#ffd166;--line:rgba(255,255,255,.1)}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,monospace;background:radial-gradient(circle at top,#111a2b,#070b14 68%);color:var(--fg)}
+    body{display:flex;align-items:center;justify-content:center;user-select:none;touch-action:none}
+    canvas{display:block;width:min(96vw,960px);height:auto;border:1px solid var(--line);box-shadow:0 0 30px #00ffe033,0 0 80px #ff2d9522}
+    .hud{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;z-index:10;pointer-events:none;gap:6px}
+    .stat{background:#121a2acc;border:1px solid #ffffff20;border-radius:10px;padding:7px 10px;min-width:70px;text-align:center}
+    .label{color:var(--cyan);font-size:10px;letter-spacing:1px;text-transform:uppercase}.value{font-size:18px;font-weight:bold;margin-top:3px}.hp{color:#ff718f}.high{color:var(--gold)}
+    .panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(90vw,430px);max-height:88vh;overflow:auto;padding:24px 21px;background:#0a0f1aee;border:1px solid #ffffff22;border-radius:16px;text-align:center;z-index:20;box-shadow:0 20px 50px #0009}
+    .hidden{display:none!important}h1{font-size:clamp(34px,7vw,52px);letter-spacing:3px;background:linear-gradient(90deg,var(--cyan),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px}h2{color:var(--cyan);letter-spacing:2px;margin-bottom:12px}.sub{color:var(--pink);font-size:12px;letter-spacing:1px;margin:0 0 16px;text-transform:uppercase}.tiny{font-size:12px;color:#c5d0dc;margin:10px 0 15px;line-height:1.55}
+    button{width:100%;padding:12px;border-radius:11px;background:linear-gradient(135deg,#101827,#1b2439);color:var(--fg);font:inherit;font-weight:bold;border:1px solid #00ffe055;cursor:pointer;margin-top:8px}button:hover{border-color:var(--cyan);box-shadow:0 0 16px #00ffe033}.secondary{background:transparent;color:var(--cyan);border-color:#ffffff30}
+    .card-list{display:grid;gap:9px}.ability-card{padding:13px;text-align:left;border:1px solid #00ffe066;background:linear-gradient(130deg,#10202d,#1c1630);border-radius:11px;cursor:pointer;color:var(--fg);font:inherit}.ability-card strong{display:block;color:var(--cyan);font-size:14px;margin-bottom:5px}.ability-card span{font-size:11px;color:#d4deea;line-height:1.45}
+    .score-list{display:grid;gap:8px;margin-top:12px;text-align:left}.score-row{padding:10px;border:1px solid #00ffe044;background:#10202d;border-radius:9px;font-size:12px}.hint{position:absolute;bottom:7px;left:0;right:0;text-align:center;color:#d9e8efaa;font-size:10px;z-index:8;pointer-events:none}
+    @media(max-width:600px){.stat{min-width:56px;padding:6px}.label{font-size:8px}.value{font-size:15px}.hint{font-size:8px}}
   </style>
 </head>
 <body>
   <div class="hud">
-    <div class="stat">
-      <div class="label">Score</div>
-      <div class="value" id="scoreValue">0</div>
-    </div>
-    <div class="stat">
-      <div class="label">Best</div>
-      <div class="value high" id="bestValue">0</div>
-    </div>
-    <div class="stat">
-      <div class="label">Speed</div>
-      <div class="value" id="speedValue">1.0x</div>
-    </div>
+    <div class="stat"><div class="label">Score</div><div class="value" id="scoreValue">0</div></div>
+    <div class="stat"><div class="label">Level</div><div class="value" id="levelValue">1</div></div>
+    <div class="stat"><div class="label">HP</div><div class="value hp" id="hpValue">20 / 20</div></div>
+    <div class="stat"><div class="label">Best</div><div class="value high" id="bestValue">0</div></div>
   </div>
 
   <div class="panel" id="startPanel">
-    <h1>NEON DRIFT</h1>
-    <div class="sub">Dodge the grid / Stay alive</div>
-    <button id="startBtn">Start Run</button>
-    <button class="secondary" id="scoresBtn">Top Scores</button>
-    <button class="secondary" id="howBtn">How to Play</button>
+    <h1>NEON DRIFT</h1><div class="sub">Dodge the grid · Stay alive</div>
+    <p class="tiny">You start with 20 HP. Reach each score milestone to advance and choose an ability card.</p>
+    <button id="startBtn">Start Run</button><button class="secondary" id="scoresBtn">Top Scores</button><button class="secondary" id="howBtn">How to Play</button>
+  </div>
+
+  <div class="panel hidden" id="cardsPanel">
+    <h2>LEVEL CLEARED!</h2><p class="tiny" id="cardLevelText">Choose one ability for the next level.</p>
+    <div class="card-list" id="cardList"></div>
   </div>
 
   <div class="panel hidden" id="scoresPanel">
-    <div class="sub">Top Scores</div>
-    <div class="score-list" id="scoreList"></div>
-    <div class="tiny">Local scores are saved in this browser. Global scores are enabled when you add your Supabase URL and anon key.</div>
+    <div class="sub">Top Scores</div><div class="score-list" id="scoreList"></div>
+    <p class="tiny">Scores are saved in this browser. A shared global leaderboard needs a configured online database.</p>
     <button class="secondary" id="scoresBackBtn">Back</button>
   </div>
 
   <div class="panel hidden" id="howPanel">
     <div class="sub">How to Play</div>
-    <div class="panel-small">
-      Use WASD or arrow keys to steer. Avoid the neon rings. Survive as long as possible and keep your best score rising.
-    </div>
+    <p class="tiny">Move with WASD or the arrow keys. Avoid the moving neon rings. A collision costs 1 HP; you have 20 HP. Every 100 points you clear a level and choose one ability card. Cards can increase your HP, speed, or protection. The game gets harder each level.</p>
     <button class="secondary" id="howBackBtn">Back</button>
   </div>
 
   <div class="panel hidden" id="gameOverPanel">
-    <div class="gameover-title">Run Complete</div>
-    <div class="final" id="finalScore">0</div>
-    <button id="restartBtn">Play Again</button>
-    <button class="secondary" id="menuBtn">Main Menu</button>
+    <div class="sub">Run Complete</div><div class="value" id="finalScore" style="font-size:52px;color:var(--cyan);margin:10px">0</div>
+    <p class="tiny" id="finalInfo"></p><button id="restartBtn">Play Again</button><button class="secondary" id="menuBtn">Main Menu</button>
   </div>
 
-  <canvas id="game" width="960" height="540"></canvas>
+  <canvas id="game" width="960" height="540" aria-label="Neon Drift game"></canvas>
+  <div class="hint">MOVE: WASD / ARROWS · AVOID THE NEON RINGS</div>
 
   <script>
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
+    const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+    const $=id=>document.getElementById(id);
+    const ui={score:$('scoreValue'),level:$('levelValue'),hp:$('hpValue'),best:$('bestValue'),start:$('startPanel'),cards:$('cardsPanel'),cardList:$('cardList'),cardLevel:$('cardLevelText'),scores:$('scoresPanel'),scoreList:$('scoreList'),how:$('howPanel'),over:$('gameOverPanel'),final:$('finalScore'),finalInfo:$('finalInfo')};
+    const state={running:false,score:0,best:Number(localStorage.getItem('neonDriftBest')||0),time:0,level:1,nextMilestone:100,hp:20,maxHp:20,invulnerable:0,shieldCharges:0,speedBoost:1,damageCooldown:0};
+    const player={x:canvas.width/2,y:canvas.height/2,r:16,vx:0,vy:0,maxSpeed:4.6};
+    const rings=[],stars=[],keys={};
 
-    const scoreValue = document.getElementById('scoreValue');
-    const bestValue = document.getElementById('bestValue');
-    const speedValue = document.getElementById('speedValue');
-    const finalScore = document.getElementById('finalScore');
-    const startPanel = document.getElementById('startPanel');
-    const scoresPanel = document.getElementById('scoresPanel');
-    const howPanel = document.getElementById('howPanel');
-    const gameOverPanel = document.getElementById('gameOverPanel');
-    const startBtn = document.getElementById('startBtn');
-    const restartBtn = document.getElementById('restartBtn');
-    const howBtn = document.getElementById('howBtn');
-    const scoresBtn = document.getElementById('scoresBtn');
-    const menuBtn = document.getElementById('menuBtn');
-    const scoresBackBtn = document.getElementById('scoresBackBtn');
-    const howBackBtn = document.getElementById('howBackBtn');
-    const scoreList = document.getElementById('scoreList');
-
-    const SUPABASE = {
-      url: 'https://YOUR_PROJECT_URL.supabase.co',
-      anonKey: 'YOUR_PUBLIC_ANON_KEY'
-    };
-
-    function isSupabaseReady() {
-      return SUPABASE.url && SUPABASE.url.includes('supabase.co') && SUPABASE.anonKey && SUPABASE.anonKey !== 'YOUR_PUBLIC_ANON_KEY';
+    function updateHud(){ui.score.textContent=state.score;ui.level.textContent=state.level;ui.hp.textContent=`${state.hp} / ${state.maxHp}`;ui.best.textContent=state.best}
+    function initStars(){stars.length=0;for(let i=0;i<100;i++)stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*2+.5,speed:Math.random()*1.1+.4})}
+    function makeRing(i){return{x:Math.random()*(canvas.width-120)+60,y:Math.random()*(canvas.height-120)+60,r:25+Math.random()*38,vx:(Math.random()-.5)*(2+state.level*.12),vy:(Math.random()-.5)*(2+state.level*.12),hue:i%2?'pink':'cyan'}}
+    function resetGame(){state.running=true;state.score=0;state.time=0;state.level=1;state.nextMilestone=100;state.maxHp=20;state.hp=20;state.invulnerable=0;state.shieldCharges=0;state.speedBoost=1;state.damageCooldown=0;player.x=canvas.width/2;player.y=canvas.height/2;player.vx=player.vy=0;player.maxSpeed=4.6;rings.length=0;for(let i=0;i<8;i++)rings.push(makeRing(i));ui.start.classList.add('hidden');ui.cards.classList.add('hidden');ui.scores.classList.add('hidden');ui.how.classList.add('hidden');ui.over.classList.add('hidden');updateHud()}
+    function saveLocalScore(){try{const scores=JSON.parse(localStorage.getItem('neonDriftScores')||'[]');scores.push({score:state.score,level:state.level,date:new Date().toLocaleDateString()});scores.sort((a,b)=>b.score-a.score);localStorage.setItem('neonDriftScores',JSON.stringify(scores.slice(0,10)))}catch{}}
+    function showScores(){let scores=[];try{scores=JSON.parse(localStorage.getItem('neonDriftScores')||'[]')}catch{}ui.scoreList.innerHTML='';if(!scores.length){ui.scoreList.innerHTML='<div class="score-row">No scores yet. Play a run to set your first record!</div>';return}scores.slice(0,5).forEach((item,index)=>{const row=document.createElement('div');row.className='score-row';row.textContent=`${index+1}. Score ${item.score} · Level ${item.level||1} · ${item.date||''}`;ui.scoreList.appendChild(row)})}
+    function endGame(){if(!state.running)return;state.running=false;saveLocalScore();if(state.score>state.best){state.best=state.score;localStorage.setItem('neonDriftBest',String(state.best))}ui.final.textContent=state.score;ui.finalInfo.textContent=`You reached level ${state.level} with ${state.hp} HP remaining.`;ui.over.classList.remove('hidden');updateHud()}
+    function takeDamage(){if(!state.running||state.invulnerable>0||state.damageCooldown>0)return;if(state.shieldCharges>0){state.shieldCharges--;state.invulnerable=45;state.damageCooldown=45;return}state.hp=Math.max(0,state.hp-1);state.invulnerable=55;state.damageCooldown=55;updateHud();if(state.hp<=0)endGame()}
+    function buildLevelCards(){const options=[
+      {name:'Repair Kit',description:'Restore 5 HP. Cannot exceed your maximum HP.',apply(){state.hp=Math.min(state.maxHp,state.hp+5)}},
+      {name:'Reinforced Hull',description:'Increase maximum HP by 5 and repair 5 HP.',apply(){state.maxHp+=5;state.hp=Math.min(state.maxHp,state.hp+5)}},
+      {name:'Turbo Thrusters',description:'Move faster for the rest of this run.',apply(){state.speedBoost*=1.14;player.maxSpeed*=1.14}},
+      {name:'Phase Shield',description:'Block the next collision without losing HP.',apply(){state.shieldCharges++}},
+      {name:'Repair and Guard',description:'Restore 2 HP and gain one shield charge.',apply(){state.hp=Math.min(state.maxHp,state.hp+2);state.shieldCharges++}}
+    ].sort(()=>Math.random()-.5).slice(0,3);
+      ui.cardList.innerHTML='';ui.cardLevel.textContent=`Level ${state.level} cleared! Pick one card to begin level ${state.level+1}.`;
+      for(const option of options){const button=document.createElement('button');button.className='ability-card';const title=document.createElement('strong');title.textContent=option.name;const desc=document.createElement('span');desc.textContent=option.description;button.append(title,desc);button.addEventListener('click',()=>{option.apply();state.level++;state.time=0;state.running=true;state.nextMilestone+=100;const count=Math.min(8+state.level,22);rings.length=0;for(let i=0;i<count;i++)rings.push(makeRing(i));ui.cards.classList.add('hidden');updateHud()});ui.cardList.appendChild(button)}
+      state.running=false;ui.cards.classList.remove('hidden');updateHud()
     }
+    function updatePlayer(){const dx=(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0),dy=(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0);player.vx+=dx*.34;player.vy+=dy*.34;player.vx*=.88;player.vy*=.88;const mag=Math.hypot(player.vx,player.vy);if(mag>player.maxSpeed){player.vx=player.vx/mag*player.maxSpeed;player.vy=player.vy/mag*player.maxSpeed}player.x=Math.max(player.r,Math.min(canvas.width-player.r,player.x+player.vx));player.y=Math.max(player.r,Math.min(canvas.height-player.r,player.y+player.vy))}
+    function updateRings(){for(const ring of rings){ring.x+=ring.vx;ring.y+=ring.vy;if(ring.x<ring.r||ring.x>canvas.width-ring.r)ring.vx*=-1;if(ring.y<ring.r||ring.y>canvas.height-ring.r)ring.vy*=-1;if(Math.hypot(player.x-ring.x,player.y-ring.y)<player.r+ring.r*.58)takeDamage()}}
+    function updateScore(){state.score++;ui.score.textContent=state.score;if(state.score>state.best)ui.best.textContent=state.score;if(state.score>=state.nextMilestone)buildLevelCards()}
+    function drawBackground(){ctx.clearRect(0,0,canvas.width,canvas.height);const gradient=ctx.createLinearGradient(0,0,0,canvas.height);gradient.addColorStop(0,'#070b14');gradient.addColorStop(.5,'#0d1522');gradient.addColorStop(1,'#070c16');ctx.fillStyle=gradient;ctx.fillRect(0,0,canvas.width,canvas.height);for(const star of stars){star.y+=star.speed;if(star.y>canvas.height){star.y=-8;star.x=Math.random()*canvas.width}ctx.fillStyle='rgba(255,255,255,.75)';ctx.beginPath();ctx.arc(star.x,star.y,star.r,0,Math.PI*2);ctx.fill()}ctx.strokeStyle='rgba(255,255,255,.055)';ctx.lineWidth=1;for(let x=0;x<canvas.width;x+=42){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke()}for(let y=0;y<canvas.height;y+=42){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke()}}
+    function drawRings(){for(const ring of rings){ctx.beginPath();ctx.arc(ring.x,ring.y,ring.r,0,Math.PI*2);ctx.strokeStyle=ring.hue==='cyan'?'rgba(0,255,224,.9)':'rgba(255,45,149,.85)';ctx.lineWidth=3;ctx.shadowColor=ring.hue==='cyan'?'#00ffe0':'#ff2d95';ctx.shadowBlur=18;ctx.stroke()}ctx.shadowBlur=0}
+    function drawPlayer(){ctx.save();if(state.invulnerable>0&&Math.floor(state.invulnerable/6)%2===0)ctx.globalAlpha=.35;ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fillStyle=state.shieldCharges?'#aaffff':'#00ffe0';ctx.shadowColor='#00ffe0';ctx.shadowBlur=18;ctx.fill();ctx.shadowBlur=0;ctx.beginPath();ctx.moveTo(player.x,player.y-9);ctx.lineTo(player.x+7,player.y+8);ctx.lineTo(player.x-7,player.y+8);ctx.closePath();ctx.fillStyle='#eaf6ff';ctx.fill();if(state.shieldCharges){ctx.strokeStyle='rgba(170,255,255,.8)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(player.x,player.y,player.r+6,0,Math.PI*2);ctx.stroke()}ctx.restore()}
+    function render(){drawBackground();drawRings();drawPlayer()}
+    function tick(){if(state.running){state.time++;if(state.invulnerable>0)state.invulnerable--;if(state.damageCooldown>0)state.damageCooldown--;updatePlayer();updateRings();if(state.time%5===0)updateScore()}render();requestAnimationFrame(tick)}
 
-    function readScores() {
-      try {
-        const raw = localStorage.getItem('neonDriftScores');
-        const arr = raw ? JSON.parse(raw) : [];
-        return Array.isArray(arr) ? arr : [];
-      } catch (err) {
-        return [];
-      }
-    }
-
-    function writeScores(arr) {
-      localStorage.setItem('neonDriftScores', JSON.stringify(arr.slice(0, 10)));
-    }
-
-    function saveLocalScore(value) {
-      const arr = readScores();
-      arr.push({ score: value, date: new Date().toLocaleDateString() });
-      arr.sort((a, b) => b.score - a.score);
-      writeScores(arr);
-    }
-
-    async function saveGlobalScore(value) {
-      if (!isSupabaseReady()) return;
-
-      try {
-        await fetch(`${SUPABASE.url}/rest/v1/leaderboard`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE.anonKey,
-            'Authorization': `Bearer ${SUPABASE.anonKey}`
-          },
-          body: JSON.stringify({
-            player: 'Player',
-            score: value,
-            level: 1,
-            created_at: new Date().toISOString()
-          })
-        });
-      } catch (err) {
-        console.warn('Supabase save failed:', err);
-      }
-    }
-
-    async function loadLeaderboard() {
-      const arr = readScores();
-      scoreList.innerHTML = '';
-
-      if (arr.length === 0) {
-        scoreList.innerHTML = '<div class="score-row"><div class="score-top"><span class="rank">★</span><strong>Local</strong></div><div class="score-name">No scores yet. Start a run to create one.</div></div>';
-      } else {
-        arr.slice(0, 5).forEach((entry, index) => {
-          const row = document.createElement('div');
-          row.className = 'score-row';
-          row.innerHTML = `
-            <div class="score-top">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <span class="rank">${index + 1}</span>
-                <strong>${entry.score}</strong>
-              </div>
-              <span class="score-name">${entry.date}</span>
-            </div>
-          `;
-          scoreList.appendChild(row);
-        });
-      }
-
-      if (isSupabaseReady()) {
-        try {
-          const resp = await fetch(`${SUPABASE.url}/rest/v1/leaderboard?select=player,score,created_at&order=score.desc&limit=5`, {
-            headers: {
-              'apikey': SUPABASE.anonKey,
-              'Authorization': `Bearer ${SUPABASE.anonKey}`
-            }
-          });
-
-          if (!resp.ok) throw new Error('Global leaderboard failed');
-
-          const rows = await resp.json();
-          if (rows && rows.length) {
-            const globalWrap = document.createElement('div');
-            globalWrap.className = 'score-row';
-            globalWrap.innerHTML = '<div class="score-top"><span class="rank">G</span><strong>Global</strong></div>';
-
-            rows.forEach((row, index) => {
-              const item = document.createElement('div');
-              item.className = 'score-name';
-              item.textContent = `${index + 1}. ${row.player || 'Player'} — ${row.score}`;
-              globalWrap.appendChild(item);
-            });
-
-            scoreList.appendChild(globalWrap);
-          }
-        } catch (err) {
-          const note = document.createElement('div');
-          note.className = 'score-row';
-          note.innerHTML = '<div class="score-top"><span class="rank">!</span><strong>Global</strong></div><div class="score-name">Connection check failed. Verify your Supabase URL and anon key.</div>';
-          scoreList.appendChild(note);
-        }
-      }
-    }
-
-    const state = {
-      running: false,
-      gameOver: false,
-      score: 0,
-      best: Number(localStorage.getItem('neonDriftBest') || 0),
-      speed: 1,
-      time: 0,
-    };
-
-    const player = {
-      x: canvas.width / 2,
-      y: canvas.height / 2,
-      r: 18,
-      vx: 0,
-      vy: 0,
-      maxSpeed: 4.6
-    };
-
-    const rings = [];
-    const stars = [];
-    const keys = {};
-
-    function initStars() {
-      stars.length = 0;
-      for (let i = 0; i < 100; i++) {
-        stars.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          r: Math.random() * 2.2 + 0.8,
-          speed: Math.random() * 1.2 + 0.4
-        });
-      }
-    }
-
-    function resetGame() {
-      state.running = true;
-      state.gameOver = false;
-      state.score = 0;
-      state.speed = 1;
-      state.time = 0;
-
-      player.x = canvas.width / 2;
-      player.y = canvas.height / 2;
-      player.vx = 0;
-      player.vy = 0;
-
-      rings.length = 0;
-      for (let i = 0; i < 8; i++) {
-        rings.push({
-          x: Math.random() * (canvas.width - 120) + 60,
-          y: Math.random() * (canvas.height - 120) + 60,
-          r: 26 + Math.random() * 42,
-          vx: (Math.random() - 0.5) * 2.2,
-          vy: (Math.random() - 0.5) * 2.2,
-          hue: i % 2 === 0 ? 'cyan' : 'pink'
-        });
-      }
-
-      scoreValue.textContent = '0';
-      speedValue.textContent = '1.0x';
-      finalScore.textContent = '0';
-      startPanel.classList.add('hidden');
-      scoresPanel.classList.add('hidden');
-      howPanel.classList.add('hidden');
-      gameOverPanel.classList.add('hidden');
-    }
-
-    function endGame() {
-      state.running = false;
-      state.gameOver = true;
-      finalScore.textContent = state.score;
-      gameOverPanel.classList.remove('hidden');
-
-      if (state.score > state.best) {
-        state.best = state.score;
-        localStorage.setItem('neonDriftBest', String(state.best));
-      }
-
-      bestValue.textContent = state.best;
-      saveLocalScore(state.score);
-      saveGlobalScore(state.score);
-      loadLeaderboard();
-    }
-
-    function updatePlayer() {
-      const dx = (keys['ArrowRight'] || keys['d'] ? 1 : 0) - (keys['ArrowLeft'] || keys['a'] ? 1 : 0);
-      const dy = (keys['ArrowDown'] || keys['s'] ? 1 : 0) - (keys['ArrowUp'] || keys['w'] ? 1 : 0);
-
-      player.vx += dx * 0.34;
-      player.vy += dy * 0.34;
-
-      player.vx *= 0.88;
-      player.vy *= 0.88;
-
-      const mag = Math.hypot(player.vx, player.vy);
-      if (mag > player.maxSpeed) {
-        player.vx = (player.vx / mag) * player.maxSpeed;
-        player.vy = (player.vy / mag) * player.maxSpeed;
-      }
-
-      player.x += player.vx;
-      player.y += player.vy;
-
-      if (player.x < player.r) player.x = player.r;
-      if (player.x > canvas.width - player.r) player.x = canvas.width - player.r;
-      if (player.y < player.r) player.y = player.r;
-      if (player.y > canvas.height - player.r) player.y = canvas.height - player.r;
-    }
-
-    function updateRings() {
-      for (const ring of rings) {
-        ring.x += ring.vx * state.speed;
-        ring.y += ring.vy * state.speed;
-
-        if (ring.x < 30 || ring.x > canvas.width - 30) ring.vx *= -1;
-        if (ring.y < 30 || ring.y > canvas.height - 30) ring.vy *= -1;
-
-        const dist = Math.hypot(player.x - ring.x, player.y - ring.y);
-        if (dist < player.r + ring.r * 0.6) {
-          endGame();
-        }
-      }
-    }
-
-    function updateScore() {
-      state.score += 1;
-      state.speed = 1 + state.score / 500;
-      scoreValue.textContent = state.score;
-      speedValue.textContent = `${state.speed.toFixed(1)}x`;
-      if (state.score > state.best) {
-        bestValue.textContent = state.score;
-      }
-    }
-
-    function drawBackground() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-
-      const grad = ctx.createLinearGradient(0,0,0,canvas.height);
-      grad.addColorStop(0,'#070b14');
-      grad.addColorStop(0.5,'#0d1522');
-      grad.addColorStop(1,'#070c16');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-
-      for (const star of stars) {
-        star.y += star.speed;
-        if (star.y > canvas.height) {
-          star.y = -10;
-          star.x = Math.random()*canvas.width;
-        }
-        ctx.fillStyle = 'rgba(255,255,255,0.8)';
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.r, 0, Math.PI*2);
-        ctx.fill();
-      }
-
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-      ctx.lineWidth = 1;
-      for (let x = 0; x < canvas.width; x += 42) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-      }
-      for (let y = 0; y < canvas.height; y += 42) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-      }
-    }
-
-    function drawRings() {
-      for (const ring of rings) {
-        ctx.beginPath();
-        ctx.arc(ring.x, ring.y, ring.r, 0, Math.PI*2);
-
-        ctx.strokeStyle = ring.hue === 'cyan'
-          ? 'rgba(0,255,224,0.9)'
-          : 'rgba(255,45,149,0.8)';
-        ctx.lineWidth = 3;
-        ctx.shadowColor = ring.hue === 'cyan' ? '#00ffe0' : '#ff2d95';
-        ctx.shadowBlur = 20;
-        ctx.stroke();
-      }
-      ctx.shadowBlur = 0;
-    }
-
-    function drawPlayer() {
-      ctx.beginPath();
-      ctx.arc(player.x, player.y, player.r, 0, Math.PI*2);
-      ctx.fillStyle = '#00ffe0';
-      ctx.shadowColor = '#00ffe0';
-      ctx.shadowBlur = 18;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      ctx.beginPath();
-      ctx.moveTo(player.x, player.y - 10);
-      ctx.lineTo(player.x + 8, player.y + 12);
-      ctx.lineTo(player.x - 8, player.y + 12);
-      ctx.closePath();
-      ctx.fillStyle = '#eaf6ff';
-      ctx.fill();
-    }
-
-    function drawCenterAxis() {
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-      ctx.beginPath();
-      ctx.moveTo(cx, 0);
-      ctx.lineTo(cx, canvas.height);
-      ctx.moveTo(0, cy);
-      ctx.lineTo(canvas.width, cy);
-      ctx.stroke();
-    }
-
-    function render() {
-      drawBackground();
-      drawCenterAxis();
-      drawRings();
-      drawPlayer();
-    }
-
-    function tick() {
-      if (state.running) {
-        state.time++;
-        updatePlayer();
-        updateRings();
-        if (state.time % 5 === 0) updateScore();
-      }
-      render();
-      requestAnimationFrame(tick);
-    }
-
-    startBtn.addEventListener('click', resetGame);
-    restartBtn.addEventListener('click', resetGame);
-    menuBtn.addEventListener('click', () => {
-      gameOverPanel.classList.add('hidden');
-      startPanel.classList.remove('hidden');
-    });
-
-    scoresBtn.addEventListener('click', async () => {
-      startPanel.classList.add('hidden');
-      await loadLeaderboard();
-      scoresPanel.classList.remove('hidden');
-    });
-
-    scoresBackBtn.addEventListener('click', () => {
-      scoresPanel.classList.add('hidden');
-      startPanel.classList.remove('hidden');
-    });
-
-    howBtn.addEventListener('click', () => {
-      startPanel.classList.add('hidden');
-      howPanel.classList.remove('hidden');
-    });
-
-    howBackBtn.addEventListener('click', () => {
-      howPanel.classList.add('hidden');
-      startPanel.classList.remove('hidden');
-    });
-
-    document.addEventListener('keydown', (e) => {
-      keys[e.key] = true;
-      keys[e.key.toLowerCase()] = true;
-      if ((e.key === 'Enter' || e.key === ' ') && !state.running) {
-        resetGame();
-      }
-    });
-
-    document.addEventListener('keyup', (e) => {
-      keys[e.key] = false;
-      keys[e.key.toLowerCase()] = false;
-    });
-
-    bestValue.textContent = state.best;
-    initStars();
-    loadLeaderboard();
-    render();
-    tick();
+    $('startBtn').addEventListener('click',resetGame);$('restartBtn').addEventListener('click',resetGame);$('menuBtn').addEventListener('click',()=>{ui.over.classList.add('hidden');ui.start.classList.remove('hidden')});$('scoresBtn').addEventListener('click',()=>{showScores();ui.start.classList.add('hidden');ui.scores.classList.remove('hidden')});$('scoresBackBtn').addEventListener('click',()=>{ui.scores.classList.add('hidden');ui.start.classList.remove('hidden')});$('howBtn').addEventListener('click',()=>{ui.start.classList.add('hidden');ui.how.classList.remove('hidden')});$('howBackBtn').addEventListener('click',()=>{ui.how.classList.add('hidden');ui.start.classList.remove('hidden')});
+    document.addEventListener('keydown',event=>{keys[event.key]=true;keys[event.key.toLowerCase()]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(event.key))event.preventDefault();if(event.key==='Enter'&&!state.running&&!ui.start.classList.contains('hidden'))resetGame()});document.addEventListener('keyup',event=>{keys[event.key]=false;keys[event.key.toLowerCase()]=false});
+    ui.best.textContent=state.best;initStars();render();requestAnimationFrame(tick);
   </script>
 </body>
 </html>
